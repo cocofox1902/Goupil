@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ProductPage from "./Adminpage/ProductPage";
 import Dashboard from "./Adminpage/Dashboard";
+import Command from "./Adminpage/Command";
 import isConnected from "./TokenValidator";
 
 function Admin() {
@@ -193,7 +194,7 @@ function Admin() {
           <p className="text-sm mx-2 self-center">Commandes</p>
         </button>
       </div>
-      {selected === 1 ? <Dashboard /> : selected === 2 ? <ProductPage /> : <></>}
+      {selected === 1 ? <Dashboard /> : selected === 2 ? <ProductPage /> : <Command />}
     </div>
   );
 }

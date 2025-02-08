@@ -1,9 +1,24 @@
 import { useState, useEffect } from "react";
 import isConnected from "./TokenValidator";
 import background from "./lampe.webp";
+import Footer from "./Components/Footer";
 
 function Home() {
   const [connected, setConnected] = useState(null);
+  const [products, setProducts] = useState([]);
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/products");
+      if (!response.ok) {
+        throw new Error("Failed to fetch products");
+      }
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -12,9 +27,10 @@ function Home() {
         setConnected(result);
       })();
     }
+    fetchProducts();
   }, []);
   return (
-    <div className="bg-cream w-fullh-min-screen">
+    <div className="bg-cream">
       <div className="top-0 z-10 bg-opacity-10 bg-clip-padding backdrop-blur-lg backdrop-filter w-full sticky">
         <div className="flex justify-between p-second backdrop-blur-xs">
           <button onClick={() => (window.location.href = "/")}>
@@ -68,19 +84,11 @@ function Home() {
             <button className="mx-second">Nous contacter</button>
           </div>
           {connected === null ? (
-            <button
-              onClick={() =>
-                (window.location.href = "http://localhost:5173/login")
-              }
-            >
+            <button onClick={() => (window.location.href = "/login")}>
               svg
             </button>
           ) : (
-            <button
-              onClick={() =>
-                (window.location.href = "http://localhost:5173/cart")
-              }
-            >
+            <button onClick={() => (window.location.href = "/cart")}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -119,6 +127,71 @@ function Home() {
         </p>
         <p className="py-prime text-[20px]">En savoir plus</p>
       </div>
+      <div className="py-16 px-24">
+        <div className="flex justify-evenly">
+          <h2 className="text-blue text-xl font-semibold">
+            Nos meilleures ventes
+          </h2>
+          <button
+            className="text-blue"
+            onClick={() => (window.location.href = "/product")}
+          >
+            Voir tous
+          </button>
+        </div>
+        <div className="flex justify-center mt-20">
+          {products.map((product, index) => (
+            <div key={index} className="text-center">
+              <img
+                src={product.color[0].photo[0]?.url}
+                alt={product.name}
+                className="w-64 h-72 cursor-pointer object-cover object-center"
+                onClick={() => changeWindow(product.productSlug)}
+              />
+              <div className="text-blue mt-2 text-start">
+                <p className="font-medium leading-5 text-lg">
+                  {product.productName}
+                </p>
+                <p className=" text-sm">{product.productPrice} €</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-[#EAE0D5] p-24 flex justify-center space-x-16">
+        <div className="flex flex-col items-center">
+          <span className="text-blue text-4xl">🚚</span>
+          <p className="text-blue mt-2">Politique de livraison</p>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-blue text-4xl">💰</span>
+          <p className="text-blue mt-2">Remboursements</p>
+        </div>
+        <div className="flex flex-col items-center">
+          <span className="text-blue text-4xl">🔄</span>
+          <p className="text-blue mt-2">Politique de retours</p>
+        </div>
+      </div>
+
+      <div className="flex place-content-center">
+        <div className="py-16 flex items-center justify-between w-1/2">
+          <div className="w-[50%]">
+            <h2 className="text-blue text-4xl font-semibold">
+              Nous concevons, fabriquons, assemblons et expédions tous nos
+              produits sur commande depuis notre petit atelier à Paris.
+            </h2>
+            <p className="text-blue mt-2 text-lg">En savoir plus</p>
+          </div>
+          <img
+            src="https://via.placeholder.com/250"
+            alt="Atelier"
+            className="w-64 h-64 object-cover rounded-md"
+          />
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 }

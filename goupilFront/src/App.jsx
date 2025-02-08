@@ -8,6 +8,7 @@ import Cart from "./page/Cart";
 import Login from "./page/Login";
 import Page404 from "./page/404";
 import "./index.css";
+import Profile from "./page/Profile";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="login" element={<Login />} />
         <Route path="/product/:productSlug" element={<ProductPage />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/profile" element={<Profile />} />
         <Route path="*" element={<Page404 />} />
       </Routes>
     </BrowserRouter>

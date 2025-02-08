@@ -8,7 +8,7 @@ const ProductPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [connected, setConnected] = useState(null);
-  const [numberOfProduct, setNumberOfProduct] = useState(0);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -42,7 +42,6 @@ const ProductPage = () => {
         (acc, item) => acc + item.quantity,
         0
       );
-      setNumberOfProduct(totalQuantity);
     }
   }, [connected]);
 
@@ -51,6 +50,7 @@ const ProductPage = () => {
 
   const handleColorClick = (index) => {
     setSelectedColorIndex(index);
+    setSelectedPhotoIndex(0);
   };
 
   if (loading) {
@@ -65,19 +65,23 @@ const ProductPage = () => {
 
   const handleAddToCart = (productId) => {
     setCart((prevCart) => {
-      const existingProduct = prevCart.find(
-        (item) => item.productId === productId
-      );
       let updatedCart;
+      const existingProductIndex = prevCart.findIndex(
+        (item) =>
+          item.productId === productId && item.colorRow === selectedColorIndex
+      );
 
-      if (existingProduct) {
-        updatedCart = prevCart.map((item) =>
-          item.productId === productId
+      if (existingProductIndex !== -1) {
+        updatedCart = prevCart.map((item, index) =>
+          index === existingProductIndex
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        updatedCart = [...prevCart, { productId, quantity: 1 }];
+        updatedCart = [
+          ...prevCart,
+          { productId, colorRow: selectedColorIndex, quantity: 1 },
+        ];
       }
 
       updateUser({ cart: updatedCart }).then(() => {
@@ -126,26 +130,32 @@ const ProductPage = () => {
   return (
     <div className="bg-[#f6f0e8] min-h-screen p-second">
       <NavBar />
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center pt-11">
         <div className="col-span-1 flex flex-col items-center p-prime">
           <img
-            src={product.photo[0]?.url}
-            alt={product.photo[0]?.altText}
+            src={
+              product.color[selectedColorIndex].photo[selectedPhotoIndex].url
+            }
+            alt={
+              product.color[selectedColorIndex].photo[selectedPhotoIndex]
+                .altText
+            }
             className="w-[28vw] h-[30vw] bg-red-500"
           />
           <div className="flex justify-between mt-second w-[28vw]">
-            {product.photo.map((img, index) => (
+            {product.color[selectedColorIndex].photo.map((img, index) => (
               <img
                 key={index}
                 src={img.url}
                 alt={img.altText}
+                onClick={() => setSelectedPhotoIndex(index)}
                 className="w-[8vw] h-[8vw] bg-red-500 hover:opacity-80 cursor-pointer"
               />
             ))}
           </div>
         </div>
 
-        <div className="p-6 text-blue">
+        <div className="pt-prime p-10 text-blue">
           <h2 className="text-3xl font-bold">{product.productName}</h2>
           <p className="text-2xl mt-2">€ {product.productPrice}</p>
 
@@ -179,11 +189,17 @@ const ProductPage = () => {
               })}
             </div>
           </div>
-          <p className="text-sm mt-4">{product.productDescription}</p>
+          <p className="text-sm mt-4 max-w-80 justify-normal">
+            {product.productDescription}
+          </p>
           <div className="mt-4">
             <button
               disabled={!product.isVisible}
-              onClick={() => handleAddToCart(product._id)}
+              onClick={() => {
+                if (connected) {
+                  handleAddToCart(product._id);
+                }
+              }}
               className={`bg-blue text-white py-2 px-4 rounded-md ${
                 !product.isVisible ? "opacity-50 cursor-not-allowed" : ""
               }`}
@@ -191,21 +207,27 @@ const ProductPage = () => {
               Ajouter au panier
             </button>
           </div>
-          <div className="mt-4 text-sm">
-            <p>
-              <strong>Matériau :</strong> {product.material}
-            </p>
-            <p>
-              <strong>Voltage :</strong> {product.voltage}V
-            </p>
-            <p>
-              <strong>Poids :</strong> {product.weight}kg
-            </p>
-            <p>
-              <strong>Dimensions :</strong> {product.dimensions[0]?.largeur}cm x{" "}
-              {product.dimensions[0]?.hauteur}cm x{" "}
-              {product.dimensions[0]?.profondeur}cm
-            </p>
+          <div className="mt-10 text-sm">
+            <div className="flex">
+              <p className="font-regular">Matériau :</p>
+              <p className="font-light pl-2"> {product.material}</p>
+            </div>
+            <div className="flex">
+              <p className="font-regular">Voltage :</p>
+              <p className="font-light pl-2"> {product.voltage}V</p>
+            </div>
+            <div className="flex">
+              <p className="font-regular">Poids :</p>
+              <p className="font-light pl-2"> {product.weight}g</p>
+            </div>
+            <div className="flex">
+              <p className="font-regular">Dimensions :</p>
+              <p className="font-light pl-2">
+                {product.dimensions[0]?.largeur}cm x{" "}
+                {product.dimensions[0]?.hauteur}cm x{" "}
+                {product.dimensions[0]?.profondeur}cm
+              </p>
+            </div>
           </div>
         </div>
       </div>

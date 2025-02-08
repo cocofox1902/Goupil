@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import isConnected from "./TokenValidator";
 import NavBar from "./Components/NavBar";
+import Footer from "./Components/Footer";
 
 function Product() {
-  const baseUrl = "http://localhost:5173/product";
+  const baseUrl = "/product";
   const [products, setProducts] = useState([]);
 
   const changeWindow = (link) => {
@@ -38,9 +38,9 @@ function Product() {
   }, []);
 
   return (
-    <div className="bg-cream w-full p-second h-min-[100vh] h-screen">
+    <div className="bg-cream w-full h-min-[100vh] h-screen">
       <NavBar />
-      <div className="mx-[10vw] mt-[100px] flex">
+      <div className="mx-[10vw] mt-[100px] flex p-second">
         <div className="text-blue mr-[5vw]">
           <button
             className={`block ${
@@ -76,7 +76,7 @@ function Product() {
           </button>
         </div>
         <div className="text-prime">
-          <div className="grid grid-cols-3 gap-x-14">
+          <div className="grid grid-cols-3 gap-x-14 gap-y-10">
             {products.map((product) => {
               if (product.isVisible === false) return null;
               if (
@@ -87,13 +87,17 @@ function Product() {
               }
               return (
                 <div key={product.productSlug}>
-                  <div
-                    className="bg-red-900 w-64 h-[19rem] cursor-pointer"
+                  <img
+                    src={product.color[0].photo[0]?.url}
+                    className="w-64 h-72 cursor-pointer object-cover object-center"
+                    alt="product"
                     onClick={() => changeWindow(product.productSlug)}
-                  ></div>
-                  <div>
-                    <p className="font-bold">{product.productName}</p>
-                    <p>{product.productPrice} €</p>
+                  />
+                  <div className="text-blue mt-2">
+                    <p className="font-medium leading-5 text-lg">
+                      {product.productName}
+                    </p>
+                    <p className=" text-sm">{product.productPrice} €</p>
                   </div>
                 </div>
               );
@@ -101,6 +105,7 @@ function Product() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

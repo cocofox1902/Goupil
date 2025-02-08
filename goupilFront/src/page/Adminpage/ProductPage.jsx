@@ -6,9 +6,8 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     productDescription: "",
     productSlug: "",
     productPrice: "",
-    productCost: "",
-    photo: [],
-    color: [],
+    productCost: 0,
+    color: [{ photo: [] }],
     weight: 0,
     packageWeight: 0,
     dimensions: [{ largeur: 0, hauteur: 0, profondeur: 0 }],
@@ -31,6 +30,7 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
   const buttonsTypeUnder = ["Intérieur", "Extérieur"];
   const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
   const [currentColor, setCurrentColor] = useState({ first: "", second: "" });
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
 
   useEffect(() => {
     if (modify && productId) {
@@ -77,6 +77,16 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
         return updatedData;
       });
     } else {
+      if (name === "productName") {
+        setFormData((prevData) => ({
+          ...prevData,
+          [name]: value,
+          productSlug: value
+            .toLowerCase()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w-]+/g, ""),
+        }));
+      }
       setFormData((prevData) => ({
         ...prevData,
         [name]: type === "checkbox" ? checked : value,
@@ -155,20 +165,45 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     }));
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length > 0) {
-      setFormData((prevState) => ({
-        ...prevState,
-        photo: [
-          ...(prevState.photo || []),
-          ...files.map((file) => ({
-            url: URL.createObjectURL(file),
-            file,
-          })),
-        ],
-      }));
+      try {
+        const base64Files = await convertToBase64(files);
+        setFormData((prevState) => {
+          const updatedColors = [...prevState.color];
+          if (!updatedColors[selectedColorIndex]) return prevState;
+
+          updatedColors[selectedColorIndex] = {
+            ...updatedColors[selectedColorIndex],
+            photo: [
+              ...(updatedColors[selectedColorIndex].photo || []),
+              ...base64Files,
+            ],
+          };
+
+          return {
+            ...prevState,
+            color: updatedColors,
+          };
+        });
+      } catch (error) {
+        console.error("Erreur de conversion en Base64:", error);
+      }
     }
+  };
+
+  const convertToBase64 = (files) => {
+    return Promise.all(
+      files.map((file) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve({ url: reader.result, file });
+          reader.onerror = (error) => reject(error);
+        });
+      })
+    );
   };
 
   const handleDeleteImage = (indexToDelete) => {
@@ -204,6 +239,10 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     }
   };
 
+  const deleteColor = (index) => {
+    console.log(index);
+  };
+
   return (
     <div className="bg-white p-prime rounded-second ml-prime overflow-y-auto max-h-[85vh] w-[31vw]">
       <div className="flex justify-between items-center">
@@ -213,51 +252,84 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
             setFormData(blankProduct);
             showAddingProduct(false);
           }}
-          className="text-gray-500 text-xl"
+          className="text-gray-500 text-xl" 
         >
           &times;
         </button>
       </div>
 
       <div className="rounded-second p-prime flex flex-col items-center relative">
-        <div className="flex items-center justify-center w-full">
-          <label
-            htmlFor="dropzone-file"
-            className="flex flex-col items-center justify-center w-full h-20 border-2 rounded-second border-black cursor-pointer"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <p className="mb-2 text-sm">Click to upload</p>
-            </div>
-            <input
-              id="dropzone-file"
-              type="file"
-              className="hidden"
-              onChange={handleFileChange}
-              multiple
+        <div className="w-full flex">
+          <div className="w-[75%] relative flex justify-center items-baseline mr-2">
+            <button
+              className="absolute top-0 left-0 bg-white text-red-600 w-6 h-6 rounded-xl"
+              onClick={() => deleteColor(selectedColorIndex)}
+            >
+              X
+            </button>
+            <img
+              src={
+                formData.color?.[selectedColorIndex]?.photo?.[0]?.url ||
+                "https://via.placeholder.com/150"
+              }
+              alt={
+                formData.color?.[selectedColorIndex]?.photo?.[0]?.altText ||
+                "Produit"
+              }
+              className="w-full aspect-square object-cover rounded-md bg-slate-300"
             />
-          </label>
+          </div>
+
+          {/* Images secondaires */}
+          <div className="w-[25%] flex flex-col gap-2 items-center">
+            {formData.color?.[selectedColorIndex]?.photo?.length > 1 &&
+              formData.color[selectedColorIndex].photo
+                .slice(1)
+                .map((image, index) => (
+                  <img
+                    key={index}
+                    src={image.url}
+                    alt={image.altText}
+                    className="w-full aspect-square object-cover rounded-md bg-gray-300 cursor-pointer"
+                  />
+                ))}
+
+            <label
+              htmlFor="dropzone-file"
+              className="flex flex-col items-center justify-center w-full border-2 rounded-second border-black cursor-pointer"
+            >
+              <div className="flex flex-col items-center justify-center">
+                <p className="text-sm">+ Ajouter</p>
+              </div>
+              <input
+                id="dropzone-file"
+                type="file"
+                className="hidden"
+                onChange={handleFileChange}
+                multiple
+              />
+            </label>
+          </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {formData.photo?.map((image, index) => (
-            <div key={index} className="relative group">
-              <img
-                src={image.url}
-                alt={`Uploaded ${index}`}
-                className="w-12 h-12 object-cover rounded cursor-pointer"
-                onClick={() => handleDeleteImage(index)}
-              />
-              <div
-                className="absolute top-0 right-0 bg-red-500 text-white px-2 py-1 text-xs rounded-bl opacity-0 group-hover:opacity-100 transition"
-                onClick={() => handleDeleteImage(index)}
-              >
-                ✕
-              </div>
-            </div>
+        {/* Sélecteur de couleur */}
+        <div className="flex justify-center space-x-2 mt-2">
+          {formData.color?.map((color, index) => (
+            <button
+              key={index}
+              className={`w-6 h-6 rounded-full border-2 ${
+                selectedColorIndex === index ? "border-blue" : "border-gray-400"
+              }`}
+              style={{
+                background: color.second
+                  ? `linear-gradient(to bottom right, ${color.first} 50%, ${color.second} 50%)`
+                  : color.first,
+              }}
+              onClick={() => setSelectedColorIndex(index)}
+            ></button>
           ))}
         </div>
       </div>
-
       <div>
         <h3 className="font-semibold text-gray-700">Description</h3>
         <input
@@ -294,7 +366,7 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
             value={formData.productCost}
           />
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mt-2">
           {formData.color?.map((color, index) => {
             return color.second === "" ? (
               <div
@@ -659,8 +731,11 @@ function ProductPage() {
           {products.map((product) => (
             <div className="flex items-center p-4 w-full">
               <div className="flex items-center space-x-6 text-sm">
-                <div className="w-12 h-12 bg-gray-300 rounded-lg"></div>
-
+                <img
+                  src={product.color[0].photo[0]?.url}
+                  alt="test"
+                  className="w-16 h-16"
+                />
                 <div className="ml-4 flex-grow">
                   <p className="font-bold text-[15px]">{product.productName}</p>
                   <div className="flex items-center space-x-1 text-sm">
@@ -739,7 +814,7 @@ function ProductPage() {
                 <button
                   onClick={() => {
                     window.open(
-                      `http://localhost:5173/product/${product.productSlug}`,
+                      `${window.location.origin}/product/${product.productSlug}`,
                       "_blank"
                     );
                   }}

@@ -10,7 +10,8 @@ const app = express();
 const port = 3000; // Port du serveur API
 
 // Middleware pour analyser les données JSON et activer CORS
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cors()); // Enable CORS
 
 // Connexion à MongoDB
@@ -28,16 +29,18 @@ const Product = mongoose.model("Product", {
   productSlug: String,
   productDescription: String,
   productPrice: Number,
-  photo: [
-    {
-      url: String,
-      altText: String,
-    },
-  ],
+  productPrice: Number,
+  productCost: Number,
   color: [
     {
       first: String,
       second: String,
+      photo: [
+        {
+          url: String,
+          altText: String,
+        },
+      ],
     },
   ],
   weight: Number,
@@ -68,6 +71,7 @@ const User = mongoose.model("User", {
   address: String,
   cart: [
     {
+      colorRow: Number,
       productId: String,
       quantity: Number,
     },
@@ -75,7 +79,13 @@ const User = mongoose.model("User", {
 });
 
 const Order = mongoose.model("Order", {
-  product: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+  productInformation: [
+    {
+      productId: String,
+      productColorRow: Number,
+      quantity: Number,
+    },
+  ],
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   shipping: String,
   date: { type: Date, default: Date.now },
@@ -248,8 +258,10 @@ app.post("/add-product", async (req, res) => {
       productName,
       productSlug,
       productDescription,
+      metaTitle,
+      metaDescription,
       productPrice,
-      photo,
+      productCost,
       color,
       weight,
       packageWeight,
@@ -262,7 +274,7 @@ app.post("/add-product", async (req, res) => {
     } = req.body;
 
     // Vérifier les champs obligatoires
-    if (!productName || !productDescription || !productPrice) {
+    if (!productName || !productDescription || !productPrice || !productCost) {
       return res
         .status(400)
         .json({ error: "Les champs obligatoires sont manquants." });
@@ -277,8 +289,10 @@ app.post("/add-product", async (req, res) => {
       productName,
       productSlug,
       productDescription,
+      metaTitle,
+      metaDescription,
       productPrice: Number(productPrice),
-      photo,
+      productCost: Number(productCost),
       color,
       weight: Number(weight),
       packageWeight: Number(packageWeight),
@@ -322,8 +336,10 @@ app.put("/modify-product/:id", async (req, res) => {
       productName,
       productSlug,
       productDescription,
-      productDescriptionLong,
+      metaTitle,
+      metaDescription,
       productPrice,
+      productCost,
       quantity,
       isDimmable,
       isOutdoor,
@@ -332,7 +348,6 @@ app.put("/modify-product/:id", async (req, res) => {
       dimensions,
       weight,
       packageWeight,
-      photo,
       unitsSold,
       material,
       categories,
@@ -345,8 +360,10 @@ app.put("/modify-product/:id", async (req, res) => {
         productName,
         productSlug,
         productDescription,
-        productDescriptionLong,
+        metaTitle,
+        metaDescription,
         productPrice: Number(productPrice),
+        productCost: Number(productCost),
         quantity: Number(quantity),
         isDimmable: Boolean(isDimmable),
         isOutdoor: Boolean(isOutdoor),
@@ -355,7 +372,6 @@ app.put("/modify-product/:id", async (req, res) => {
         dimensions,
         weight,
         packageWeight,
-        photo,
         unitsSold,
         material,
         categories,
@@ -399,9 +415,14 @@ app.post("/pay", async (req, res) => {
         if (!product) {
           throw new Error(`Produit non trouvé: ${item.productId}`);
         }
+
+        const cartItem = userFound.cart.find(
+          (cartItem) => cartItem.productId.toString() === item.productId
+        );
+
         return {
           productId: product._id,
-          productName: product.productName,
+          productColorRow: cartItem ? cartItem.colorRow : null,
           quantity: item.quantity,
         };
       })
@@ -409,7 +430,7 @@ app.post("/pay", async (req, res) => {
 
     const newOrder = new Order({
       user: userFound._id,
-      product: productDetails,
+      productInformation: productDetails,
       shipping: "pending",
       date: Date.now(),
     });
@@ -422,6 +443,38 @@ app.post("/pay", async (req, res) => {
   } catch (error) {
     console.error("Erreur lors de la création de la commande:", error);
     res.status(500).json({ error: "Erreur interne du serveur" });
+  }
+});
+
+app.get("/orders", async (req, res) => {
+  try {
+    const orders = await Order.find();
+    // await Order.deleteMany();
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des commandes:", error);
+    res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+});
+
+app.get("/user-find", async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "L'ID utilisateur est requis" });
+  }
+
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    res.status(500).send("Erreur interne du serveur");
   }
 });
 

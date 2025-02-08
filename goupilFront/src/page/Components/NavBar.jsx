@@ -66,7 +66,7 @@ function NavBar() {
           />
         </svg>
       </button>
-      <div className="text-blue content-center text-[22px] font-light">
+      <div className="text-blue content-center text-[20px] font-light">
         <button
           className="mx-second"
           onClick={() => (window.location.href = "/product")}
@@ -76,24 +76,36 @@ function NavBar() {
         <button className="mx-second">Qui sommes-nous ?</button>
         <button className="mx-second">Nous contacter</button>
       </div>
-      {connected === null ? (
+      <div className="flex">
+        {connected === null ? (
+          <button
+            onClick={() => (window.location.href = "/login")}
+            className="text-blue"
+          >
+            Se connecter
+          </button>
+        ) : (
+          <button
+            onClick={() => (window.location.href = "/profile")}
+            className="text-blue"
+          >
+            {connected.user.firstName} {connected.user.name}
+          </button>
+        )}
         <button
-          onClick={() => (window.location.href = "http://localhost:5173/login")}
-        >
-          svg
-        </button>
-      ) : (
-        <button
-          onClick={() => (window.location.href = "http://localhost:5173/cart")}
+          onClick={() => (window.location.href = "/cart")}
+          className="ml-4"
         >
           {numberOfProduct > 0 ? (
             <div className="relative">
-              <p className="text-blue absolute top-[26px] left-[27px] text-xs">{numberOfProduct}</p>
+              <p className="text-blue absolute top-[20px] left-[21px] text-[10px] w-3 font-bold">
+                {numberOfProduct}
+              </p>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 version="1.1"
-                width="44"
-                height="44"
+                width="35"
+                height="35"
                 viewBox="0 0 31 31"
                 color="#060571"
               >
@@ -138,8 +150,8 @@ function NavBar() {
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              width="24"
-              height="24"
+              width="35"
+              height="35"
               color="#060571"
               fill="none"
             >
@@ -162,7 +174,7 @@ function NavBar() {
             </svg>
           )}
         </button>
-      )}
+      </div>
     </div>
   );
 }
