@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import NavBar from "./Components/NavBar";
-import Footer from "./Components/Footer";
+import NavBar from "../Components/NavBar";
+import Footer from "../Components/Footer";
 
 function Product() {
   const baseUrl = "/product";
@@ -12,7 +12,7 @@ function Product() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/products");
+      const response = await fetch("https://localhost:7126/api/Products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -40,8 +40,8 @@ function Product() {
   return (
     <div className="bg-cream w-full h-min-[100vh] h-screen">
       <NavBar />
-      <div className="mx-[10vw] mt-[100px] flex p-second">
-        <div className="text-blue mr-[5vw]">
+      <div className="mx-[10vw] mt-[100px] md:flex p-second">
+        <div className="text-blue md:mr-[5vw] justify-items-center">
           <button
             className={`block ${
               typeOfProduct.includes("Desk") ? "underline" : ""
@@ -76,7 +76,7 @@ function Product() {
           </button>
         </div>
         <div className="text-prime">
-          <div className="grid grid-cols-3 gap-x-14 gap-y-10">
+          <div className="grid md:grid-cols-3 grid-cols-1 gap-x-14 gap-y-10">
             {products.map((product) => {
               if (product.isVisible === false) return null;
               if (
@@ -97,7 +97,7 @@ function Product() {
                     <p className="font-medium leading-5 text-lg">
                       {product.productName}
                     </p>
-                    <p className=" text-sm">{product.productPrice} €</p>
+                    <p className=" text-sm">{product.productPrice.toFixed(2)} €</p>
                   </div>
                 </div>
               );

@@ -1,57 +1,22 @@
-import image from "./lampe.webp";
+import image from "../assets/lampe.webp";
 import { useState } from "react";
 
-function Login() {
-  const [login, setLogin] = useState(true);
+function PasswordChangeur() {
   const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const email = useState(window.location.search.split("=")[1]);
+  const token = useState(window.location.search.split("=")[2]);
 
-  const [name, setName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-
-  const handleLogin = async () => {
-    const response = await fetch("http://localhost:3000/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+  const submit = async () => {
+    const response = await fetch("http://localhost:3000/forgot-password", {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password, newPassword }),
     });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      localStorage.setItem("token", data.token);
-      window.location.href = "/product";
-    } else {
-      alert("Identifiants incorrects");
-    }
   };
-
-  const handleRegister = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          name,
-          firstName,
-          phone,
-          address,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to register");
-      }
-
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error registering:", error);
-    }
-  };
-
   return (
     <div className="flex bg-[#F7F3EE] h-screen">
       <img
@@ -114,109 +79,34 @@ function Login() {
             />
           </svg>
           <h2 className="text-2xl text-center mb-4 font-bold text-blue">
-            Bonjour !
+            Réinitialisation de mot de passe
           </h2>
-          <div className="flex justify-center space-x-4 mb-6">
+          <div className="space-y-4">
+            <p>Entrez votre nouveau mot de passe</p>
+            <input
+              type="password"
+              placeholder="Nouveau mot de passe"
+              className="w-full p-3 border rounded"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <p>Re-entrez votre mot de passe</p>
+            <input
+              type="password"
+              placeholder="Re-entrez votre mot de passe"
+              className="w-full p-3 border rounded"
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
             <button
-              className={`px-4 py-2 rounded ${
-                login ? "bg-blue text-white" : "bg-white text-blue"
-              }`}
-              onClick={() => setLogin(true)}
+              className="w-full p-3 bg-blue text-white rounded"
+              onClick={() => submit()}
             >
-              Se connecter
-            </button>
-            <button
-              className={`px-4 py-2 rounded ${
-                login ? "bg-white text-blue" : "bg-blue text-white"
-              }`}
-              onClick={() => setLogin(false)}
-            >
-              S'inscrire
+              Enregistrer
             </button>
           </div>
-          {login ? (
-            <div className="space-y-4">
-              <input
-                type="email"
-                placeholder="E-mail"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                type="password"
-                placeholder="Mot de passe"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center">
-                  <input type="checkbox" className="mr-2" />
-                  Se souvenir de moi
-                </label>
-                <a href="#" className="text-blue">
-                  Mot de passe oublié ?
-                </a>
-              </div>
-              <button
-                className="w-full p-3 bg-blue text-white rounded"
-                onClick={() => handleLogin()}
-              >
-                Continuer
-              </button>
-              <div className="grid grid-cols-2 w-[800px] bg-white shadow-lg rounded-lg overflow-hidden"></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  placeholder="Nom"
-                  className="w-full p-3 border rounded"
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Prenom"
-                  className="w-full p-3 border rounded"
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-              </div>
-              <input
-                type="text"
-                placeholder="Adresse"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setAddress(e.target.value)}
-              />
-              <input
-                type="email"
-                placeholder="E-mail"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <input
-                type="number"
-                placeholder="Telephone"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              <input
-                type="password"
-                placeholder="Mot de passe"
-                className="w-full p-3 border rounded"
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button
-                className="w-full p-3 bg-blue text-white rounded"
-                onClick={() => handleRegister()}
-              >
-                Continuer
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default PasswordChangeur;

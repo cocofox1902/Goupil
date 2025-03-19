@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import isConnected from "./TokenValidator";
-import NavBar from "./Components/NavBar";
+import isConnected from "../Components/TokenValidator";
+import NavBar from "../Components/NavBar";
 
 function Cart() {
   const [connected, setConnected] = useState(null);
-  const [deliveryPriceCalculated, setDeliveryPriceCalculated] = useState(750);
+  const [deliveryPriceCalculated, setDeliveryPriceCalculated] = useState(0);
   const deliveryPrice = [
+    { weight: 0, price: 0 },
     { weight: 750, price: 10 },
     { weight: 2000, price: 13 },
     { weight: 5000, price: 18 },
@@ -54,12 +55,9 @@ function Cart() {
 
   const pay = async () => {
     if (
-      connected.firstName === "" ||
-      connected.name === "" ||
-      connected.address === "" ||
-      connected.email === ""
+      localStorage.getItem("token") === null
     ) {
-      alert("Veuillez remplir vos coordonnées");
+      window.location.href = "/login";
       return;
     }
 
@@ -72,8 +70,10 @@ function Cart() {
       })),
     };
 
+    console.log(orderData);
+
     try {
-      const response = await fetch("http://localhost:3000/pay", {
+      const response = await fetch("https://localhost:7126/api/Products/pay", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -219,9 +219,9 @@ function Cart() {
   }, [underTotalPrice, deliveryPriceCalculated]);
 
   return (
-    <div className="bg-cream w-full p-second min-h-screen">
+    <div className="bg-cream w-full min-h-screen">
       <NavBar />
-      <ul className="flex justify-center my-prime max-w-3xl min-w-3xl mx-auto text-blue">
+      <ul className="flex justify-center p-second my-prime max-w-3xl min-w-3xl mx-auto text-blue">
         <li className="w-[33%]">
           <div className="mt-3 flex justify-center">
             <span
@@ -332,7 +332,7 @@ function Cart() {
                         </p>
                       </div>
                     </td>
-                    <td className="pl-5">{item.productPrice} €</td>
+                    <td className="pl-5">{item.productPrice.toFixed(2)} €</td>
                     <td>
                       <input
                         className="w-[100%]"
@@ -347,7 +347,7 @@ function Cart() {
                         }
                       />
                     </td>
-                    <td>{item.productPrice * item.quantity} €</td>
+                    <td>{(item.productPrice * item.quantity).toFixed(2)} €</td>
                   </tr>
                 );
               })}
@@ -361,22 +361,23 @@ function Cart() {
               <tbody>
                 <tr>
                   <td className="w-[66%]">Sous-total</td>
-                  <td className="w-[33%]">{underTotalPrice} €</td>
+                  <td className="w-[33%]">{underTotalPrice.toFixed(2)} €</td>
                 </tr>
                 <tr>
                   <td className="w-[66%]">Livraison</td>
-                  <td className="w-[33%]">{deliveryPriceCalculated} €</td>
+                  <td className="w-[33%]">{deliveryPriceCalculated.toFixed(2)} €</td>
                 </tr>
                 <tr>
                   <td className="w-[66%] pt-second">Total :</td>
-                  <td className="w-[33%] pt-second">{totalPrice} €</td>
+                  <td className="w-[33%] pt-second">{totalPrice.toFixed(2)} €</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <button
-            className="mt-6 w-full bg-blue text-white py-2 rounded text-lg"
+            className="mt-6 w-full bg-blue text-white py-2 rounded text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={cart.length === 0}
             onClick={() => {
               command(1);
             }}

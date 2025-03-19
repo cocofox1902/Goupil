@@ -1,11 +1,11 @@
 function Footer() {
   return (
     <footer className="w-full bg-[#EAE0D5] py-12">
-      <div className="max-w-6xl mx-auto flex items-start text-sm text-gray-700">
-        <div>
+      <div className="max-w-6xl mx-auto md:flex items-start text-sm text-gray-700">
+        <div className="flex justify-center">
           <button
             onClick={() => (window.location.href = "/")}
-            className="ml-20"
+            className="md:ml-20 ml-0"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@ function Footer() {
             </svg>
           </button>
         </div>
-        <div className="flex justify-between w-[50%] ml-20 text-[#957A5C]">
+        <div className="flex md:justify-between justify-center md:w-[50%] md:ml-20 ml-0 text-[#957A5C] gap-2">
           <div className="flex flex-col items-start space-y-3">
             <button onClick={() => (window.location.href = "/product")}>
               Boutique
@@ -73,9 +73,6 @@ function Footer() {
           <div className="flex flex-col items-start space-y-3">
             <button onClick={() => (window.location.href = "/profile")}>
               Espace client
-            </button>
-            <button onClick={() => (window.location.href = "/invoices")}>
-              Factures
             </button>
           </div>
         </div>

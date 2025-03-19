@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import isConnected from "./TokenValidator";
-import NavBar from "./Components/NavBar";
+import isConnected from "../Components/TokenValidator";
+import NavBar from "../Components/NavBar";
+import Footer from "../Components/Footer";
 
 const ProductPage = () => {
   const { productSlug } = useParams();
@@ -13,7 +14,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("http://localhost:3000/products");
+        const response = await fetch("https://localhost:7126/api/Products");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
@@ -29,8 +30,27 @@ const ProductPage = () => {
     fetchProducts();
     if (localStorage.getItem("token")) {
       (async () => {
-        const result = await isConnected();
-        setConnected(result);
+        const fetchUserInfo = async () => {
+          try {
+            const response = await fetch("https://localhost:7126/api/Users/me", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            });
+
+            if (response.ok) {
+              const userData = await response.json();
+              setConnected(userData);
+            } else {
+              console.error("Failed to fetch user info");
+            }
+          } catch (error) {
+            console.error("Error fetching user info:", error);
+          }
+        };
+
+        fetchUserInfo();
       })();
     }
   }, []);
@@ -128,28 +148,27 @@ const ProductPage = () => {
   };
 
   return (
-    <div className="bg-[#f6f0e8] min-h-screen p-second">
+    <div className="bg-[#f6f0e8] min-h-screen">
       <NavBar />
-      <div className="w-full flex justify-center pt-11">
+      <div className="w-full md:flex justify-center  p-second pt-11">
         <div className="col-span-1 flex flex-col items-center p-prime">
           <img
             src={
               product.color[selectedColorIndex].photo[selectedPhotoIndex].url
             }
             alt={
-              product.color[selectedColorIndex].photo[selectedPhotoIndex]
-                .altText
+              product.productName
             }
-            className="w-[28vw] h-[30vw] bg-red-500"
+            className="md:w-[28vw] w-[80%] md:h-[30vw] h-[50%] bg-red-500"
           />
-          <div className="flex justify-between mt-second w-[28vw]">
+          <div className="flex justify-between mt-second md:w-[28vw] w-[80%]">
             {product.color[selectedColorIndex].photo.map((img, index) => (
               <img
                 key={index}
                 src={img.url}
-                alt={img.altText}
+                alt={product.productName}
                 onClick={() => setSelectedPhotoIndex(index)}
-                className="w-[8vw] h-[8vw] bg-red-500 hover:opacity-80 cursor-pointer"
+                className="md:w-[8vw] w-[25%] md:h-[8vw] h-[10%] bg-red-500 hover:opacity-80 cursor-pointer"
               />
             ))}
           </div>
@@ -157,7 +176,7 @@ const ProductPage = () => {
 
         <div className="pt-prime p-10 text-blue">
           <h2 className="text-3xl font-bold">{product.productName}</h2>
-          <p className="text-2xl mt-2">€ {product.productPrice}</p>
+          <p className="text-2xl mt-2">{product.productPrice.toFixed(2)} €</p>
 
           <div className="mt-4">
             <p className="font-semibold">Couleur</p>
@@ -198,6 +217,8 @@ const ProductPage = () => {
               onClick={() => {
                 if (connected) {
                   handleAddToCart(product._id);
+                } else {
+                  alert("Vous devez être connecté pour ajouter au panier.");
                 }
               }}
               className={`bg-blue text-white py-2 px-4 rounded-md ${
@@ -231,6 +252,7 @@ const ProductPage = () => {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 };

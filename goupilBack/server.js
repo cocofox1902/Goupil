@@ -416,13 +416,9 @@ app.post("/pay", async (req, res) => {
           throw new Error(`Produit non trouvé: ${item.productId}`);
         }
 
-        const cartItem = userFound.cart.find(
-          (cartItem) => cartItem.productId.toString() === item.productId
-        );
-
         return {
           productId: product._id,
-          productColorRow: cartItem ? cartItem.colorRow : null,
+          productColorRow: item.productColorRow,
           quantity: item.quantity,
         };
       })

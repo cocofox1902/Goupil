@@ -1,25 +1,35 @@
 import { useState, useEffect } from "react";
-import ProductPage from "./Adminpage/ProductPage";
-import Dashboard from "./Adminpage/Dashboard";
-import Command from "./Adminpage/Command";
-import isConnected from "./TokenValidator";
+import ProductPage from "./ProductPage";
+import Command from "./Command";
 
 function Admin() {
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(0);
 
   const changeNav = (number) => {
     setSelected(number);
   };
 
-  const [connected, setConnected] = useState(null);
-
   useEffect(() => {
     if (localStorage.getItem("token")) {
       (async () => {
-        const result = await isConnected();
-        setConnected(result);
-
-        if (!result?.access) {
+        try {
+          const result = await fetch(
+            "https://localhost:7126/api/Products/Admin",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
+          );
+          if (!result.ok) {
+            window.location.href = "/login";
+            throw new Error("Failed to fetch products");
+          } else {
+            setSelected(1);
+          }
+        } catch (error) {
+          console.error("Error fetching products:", error);
           window.location.href = "/login";
         }
       })();
@@ -84,30 +94,33 @@ function Admin() {
             viewBox="0 0 21.54 21.54"
             className="w-4 h-4 self-center mx-1"
           >
-            <g id="Dash_Board_Picto" data-name="Dash Board Picto">
-              <path
+            <g id="Group_23" data-name="Group 23">
+              <circle
+                id="Ellipse_5"
+                data-name="Ellipse 5"
                 fill="none"
                 stroke={`${selected === 1 ? "white" : "black"}`}
-                d="M.77,4.77c0-1.89,0-2.83.59-3.41s1.53-.59,3.41-.59,2.83,0,3.41.59.59,1.53.59,3.41v2c0,1.89,0,2.83-.59,3.41s-1.53.59-3.41.59-2.83,0-3.41-.59-.59-1.53-.59-3.41v-2Z"
+                cx="16.25"
+                cy="5.25"
+                r="1.5"
               />
               <path
+                id="Path_35"
+                data-name="Path 35"
                 fill="none"
                 stroke={`${selected === 1 ? "white" : "black"}`}
-                d="M.77,17.77c-.06-.59,0-1.19.15-1.76.2-.49.59-.88,1.08-1.08.57-.16,1.17-.21,1.77-.15h2c.59-.06,1.19,0,1.77.15.49.2.88.59,1.08,1.08.16.57.21,1.17.15,1.77.06.59,0,1.19-.15,1.76-.2.49-.59.88-1.08,1.08-.57.16-1.17.21-1.77.15h-2c-.59.06-1.19,0-1.76-.15-.49-.2-.88-.59-1.08-1.08-.16-.57-.21-1.17-.15-1.77Z"
+                d="M1.52,9.89c-.99,1.14-1.03,2.82-.1,4,1.79,2.32,3.86,4.4,6.18,6.19,1.18.93,2.86.89,4-.1,3.03-2.71,5.87-5.62,8.52-8.7.27-.31.43-.69.47-1.09.17-1.8.5-6.97-.9-8.37s-6.58-1.07-8.37-.9c-.4.04-.79.2-1.09.47C7.14,4.02,4.23,6.87,1.52,9.89Z"
               />
               <path
+                id="Path_36"
+                data-name="Path 36"
                 fill="none"
                 stroke={`${selected === 1 ? "white" : "black"}`}
-                d="M12.77,14.77c0-1.89,0-2.83.59-3.41s1.53-.59,3.41-.59,2.83,0,3.41.59.59,1.53.59,3.41v2c0,1.89,0,2.83-.59,3.41s-1.53.59-3.41.59-2.83,0-3.41-.59-.59-1.53-.59-3.41v-2Z"
-              />
-              <path
-                fill="none"
-                stroke={`${selected === 1 ? "white" : "black"}`}
-                d="M12.77,3.77c-.06-.59,0-1.19.15-1.76.2-.49.59-.88,1.08-1.08.57-.16,1.17-.21,1.77-.15h2c.59-.06,1.19,0,1.76.15.49.2.88.59,1.08,1.08.16.57.21,1.17.15,1.77.06.59,0,1.19-.15,1.76-.2.49-.59.88-1.08,1.08-.57.16-1.17.21-1.77.15h-2c-.59.06-1.19,0-1.77-.15-.49-.2-.88-.59-1.08-1.08-.16-.57-.21-1.17-.15-1.77Z"
+                d="M5.75,12.75l3,3"
               />
             </g>
           </svg>
-          <p className="text-sm mx-2 self-center">Dashboard</p>
+          <p className="text-sm mx-2 self-center">Produit</p>
         </button>
         <button
           className={`flex ${
@@ -124,69 +137,26 @@ function Admin() {
             viewBox="0 0 21.54 21.54"
             className="w-4 h-4 self-center mx-1"
           >
-            <g id="Group_23" data-name="Group 23">
-              <circle
-                id="Ellipse_5"
-                data-name="Ellipse 5"
-                fill="none"
-                stroke={`${selected === 2 ? "white" : "black"}`}
-                cx="16.25"
-                cy="5.25"
-                r="1.5"
-              />
-              <path
-                id="Path_35"
-                data-name="Path 35"
-                fill="none"
-                stroke={`${selected === 2 ? "white" : "black"}`}
-                d="M1.52,9.89c-.99,1.14-1.03,2.82-.1,4,1.79,2.32,3.86,4.4,6.18,6.19,1.18.93,2.86.89,4-.1,3.03-2.71,5.87-5.62,8.52-8.7.27-.31.43-.69.47-1.09.17-1.8.5-6.97-.9-8.37s-6.58-1.07-8.37-.9c-.4.04-.79.2-1.09.47C7.14,4.02,4.23,6.87,1.52,9.89Z"
-              />
-              <path
-                id="Path_36"
-                data-name="Path 36"
-                fill="none"
-                stroke={`${selected === 2 ? "white" : "black"}`}
-                d="M5.75,12.75l3,3"
-              />
-            </g>
-          </svg>
-          <p className="text-sm mx-2 self-center">Produits</p>
-        </button>
-        <button
-          className={`flex ${
-            selected === 3 ? "bg-blue text-white" : "bg-bg-color"
-          } rounded-second m-prime p-1`}
-          onClick={() => {
-            changeNav(3);
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            id="Layer_1"
-            data-name="Layer 1"
-            viewBox="0 0 21.54 21.54"
-            className="w-4 h-4 self-center mx-1"
-          >
             <g id="Orders_Picto" data-name="Orders Picto">
               <path
                 id="Path_8"
                 data-name="Path 8"
                 fill="none"
-                stroke={`${selected === 3 ? "white" : "black"}`}
+                stroke={`${selected === 2 ? "white" : "black"}`}
                 d="M18.77.75c-1.12,0-2.02,2.69-2.02,6h2.02c.97,0,1.46,0,1.76-.34s.25-.78.14-1.66c-.28-2.33-1.02-4-1.9-4Z"
               />
               <path
                 id="Path_9"
                 data-name="Path 9"
                 fill="none"
-                stroke={`${selected === 3 ? "white" : "black"}`}
+                stroke={`${selected === 2 ? "white" : "black"}`}
                 d="M16.75,6.8v10.59c0,1.51,0,2.27-.46,2.57-.75.49-1.92-.53-2.51-.9-.29-.24-.63-.4-1-.47-.29-.01-.54.14-1.06.47l-1.91,1.2c-.52.33-.77.49-1.06.49s-.55-.16-1.06-.49l-1.91-1.2c-.29-.24-.63-.4-1-.47-.29-.01-.54.14-1.06.47-.59.37-1.75,1.39-2.51.9-.46-.29-.46-1.05-.46-2.56V6.8C.75,3.95.75,2.52,1.63,1.64s2.29-.89,5.12-.89h12"
               />
               <path
                 id="Path_10"
                 data-name="Path 10"
                 fill="none"
-                stroke={`${selected === 3 ? "white" : "black"}`}
+                stroke={`${selected === 2 ? "white" : "black"}`}
                 d="M8.75,6.75c-1.1,0-2,.67-2,1.5s.9,1.5,2,1.5,2,.67,2,1.5-.9,1.5-2,1.5M8.75,6.75c.77-.05,1.49.34,1.89,1M8.75,6.75v-1M8.75,12.75c-.77.05-1.49-.34-1.89-1M8.75,12.75v1"
               />
             </g>
@@ -194,7 +164,13 @@ function Admin() {
           <p className="text-sm mx-2 self-center">Commandes</p>
         </button>
       </div>
-      {selected === 1 ? <Dashboard /> : selected === 2 ? <ProductPage /> : <Command />}
+      {selected === 0 ? (
+        <div>Please wait...</div>
+      ) : selected === 1 ? (
+        <ProductPage />
+      ) : (
+        <Command />
+      )}
     </div>
   );
 }

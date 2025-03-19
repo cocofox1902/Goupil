@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import isConnected from "../TokenValidator";
+import isConnected from "./TokenValidator";
 
 function NavBar() {
   const [connected, setConnected] = useState(null);
@@ -8,8 +8,27 @@ function NavBar() {
   useEffect(() => {
     if (localStorage.getItem("token")) {
       (async () => {
-        const result = await isConnected();
-        setConnected(result);
+        const fetchUserInfo = async () => {
+          try {
+            const response = await fetch("https://localhost:7126/api/Users/me", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            });
+
+            if (response.ok) {
+              const userData = await response.json();
+              setConnected(userData);
+            } else {
+              console.error("Failed to fetch user info");
+            }
+          } catch (error) {
+            console.error("Error fetching user info:", error);
+          }
+        };
+
+        fetchUserInfo();
       })();
     }
   }, []);
@@ -25,7 +44,7 @@ function NavBar() {
   }, [connected]);
 
   return (
-    <div className="flex justify-between p-second backdrop-blur-xs">
+    <div className="flex justify-between p-second backdrop-blur-xl z-20 relative backdrop-filter bg-bg-color bg-opacity-30">
       <button onClick={() => (window.location.href = "/")}>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -66,15 +85,15 @@ function NavBar() {
           />
         </svg>
       </button>
-      <div className="text-blue content-center text-[20px] font-light">
+      <div className="text-blue content-center text-[20px] font-light flex">
         <button
-          className="mx-second"
+          className="mx-second md:block hidden"
           onClick={() => (window.location.href = "/product")}
         >
           Boutique
         </button>
-        <button className="mx-second">Qui sommes-nous ?</button>
-        <button className="mx-second">Nous contacter</button>
+        <button className="mx-second md:block hidden">Qui sommes-nous ?</button>
+        <button className="mx-second md:block hidden">Nous contacter</button>
       </div>
       <div className="flex">
         {connected === null ? (
@@ -89,7 +108,7 @@ function NavBar() {
             onClick={() => (window.location.href = "/profile")}
             className="text-blue"
           >
-            {connected.user.firstName} {connected.user.name}
+            {connected.firstName} {connected.lastName}
           </button>
         )}
         <button

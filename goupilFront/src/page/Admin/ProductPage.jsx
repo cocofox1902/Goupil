@@ -19,6 +19,7 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     unitsSold: 0,
     metaTitle: "",
     metaDescription: "",
+    isVisible: true,
   };
   const [formData, setFormData] = useState(blankProduct);
 
@@ -104,10 +105,11 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     const updatedFormData = { ...formData, productSlug: formattedSlug };
 
     try {
-      const response = await fetch("http://localhost:3000/add-product", {
+      const response = await fetch("https://localhost:7126/api/Products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedFormData),
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       });
 
       if (response.ok) {
@@ -174,6 +176,13 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
           const updatedColors = [...prevState.color];
           if (!updatedColors[selectedColorIndex]) return prevState;
 
+          if (updatedColors[selectedColorIndex].photo) {
+            if (updatedColors[selectedColorIndex].photo.length > 3) {
+              alert("Maximum 5 images");
+              return prevState;
+            }
+          }
+
           updatedColors[selectedColorIndex] = {
             ...updatedColors[selectedColorIndex],
             photo: [
@@ -191,6 +200,21 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
         console.error("Erreur de conversion en Base64:", error);
       }
     }
+  };
+
+  const deleteProductImage = (indexColor, indexImage) => {
+    setFormData((prevState) => {
+      const updatedColors = [...prevState.color];
+      const updatedColor = updatedColors[indexColor];
+      const updatedImages = updatedColor.photo.filter(
+        (_, imageIndex) => imageIndex !== indexImage
+      );
+      updatedColors[indexColor] = { ...updatedColor, photo: updatedImages };
+      return {
+        ...prevState,
+        color: updatedColors,
+      };
+    });
   };
 
   const convertToBase64 = (files) => {
@@ -252,35 +276,25 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
             setFormData(blankProduct);
             showAddingProduct(false);
           }}
-          className="text-gray-500 text-xl" 
+          className="text-gray-500 text-xl"
         >
           &times;
         </button>
       </div>
-
       <div className="rounded-second p-prime flex flex-col items-center relative">
         <div className="w-full flex">
           <div className="w-[75%] relative flex justify-center items-baseline mr-2">
-            <button
-              className="absolute top-0 left-0 bg-white text-red-600 w-6 h-6 rounded-xl"
-              onClick={() => deleteColor(selectedColorIndex)}
-            >
-              X
-            </button>
-            <img
-              src={
-                formData.color?.[selectedColorIndex]?.photo?.[0]?.url ||
-                "https://via.placeholder.com/150"
-              }
-              alt={
-                formData.color?.[selectedColorIndex]?.photo?.[0]?.altText ||
-                "Produit"
-              }
-              className="w-full aspect-square object-cover rounded-md bg-slate-300"
-            />
+            {formData.color?.[selectedColorIndex]?.photo?.[0]?.url ? (
+              <img
+                src={formData.color?.[selectedColorIndex]?.photo?.[0]?.url}
+                alt={formData.productName}
+                onClick={() => deleteProductImage(selectedColorIndex, 0)}
+                className="w-full aspect-square object-cover rounded-md bg-slate-300 hover:opacity-50 cursor-pointer"
+              />
+            ) : (
+              <div className="w-full aspect-square object-cover rounded-md bg-slate-300"></div>
+            )}
           </div>
-
-          {/* Images secondaires */}
           <div className="w-[25%] flex flex-col gap-2 items-center">
             {formData.color?.[selectedColorIndex]?.photo?.length > 1 &&
               formData.color[selectedColorIndex].photo
@@ -289,8 +303,11 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
                   <img
                     key={index}
                     src={image.url}
-                    alt={image.altText}
-                    className="w-full aspect-square object-cover rounded-md bg-gray-300 cursor-pointer"
+                    alt={formData.productName}
+                    onClick={() =>
+                      deleteProductImage(selectedColorIndex, index + 1)
+                    }
+                    className="w-full aspect-square object-cover rounded-md bg-gray-300 cursor-pointer hover:opacity-50"
                   />
                 ))}
 
@@ -311,8 +328,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
             </label>
           </div>
         </div>
-
-        {/* Sélecteur de couleur */}
         <div className="flex justify-center space-x-2 mt-2">
           {formData.color?.map((color, index) => (
             <button
@@ -430,7 +445,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
           ))}
         </div>
       </div>
-
       <div className="mt-4">
         <h3 className="font-semibold text-gray-700">Meta description</h3>
         <input
@@ -450,7 +464,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
           value={formData.metaDescription}
         />
       </div>
-
       <div className="mt-4">
         <h3 className="font-semibold text-gray-700">Description technique</h3>
         <div className="grid grid-cols-3 gap-2 mt-1">
@@ -529,7 +542,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
           value={formData.packageWeight}
         />
       </div>
-
       {isColorPickerOpen && (
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded shadow-lg z-50">
           <h3 className="font-semibold text-gray-700 mb-2">Select Colors</h3>
@@ -565,7 +577,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
           </div>
         </div>
       )}
-
       <button
         onClick={(e) => {
           if (modify === true) {
@@ -592,7 +603,7 @@ function ProductPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("http://localhost:3000/products");
+      const response = await fetch("https://localhost:7126/api/Products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -621,8 +632,13 @@ function ProductPage() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/delete-product/${productId}`,
-        { method: "DELETE" }
+        `https://localhost:7126/api/Products/${productId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
 
       if (response.ok) {
@@ -698,21 +714,21 @@ function ProductPage() {
             <p className="text-blue text-third">{products.length}</p>
           </div>
           <div className="flex-1 bg-white rounded-second p-prime">
-            <p className="text-second font-bold">Le + vendu</p>
-            <div className="flex">
-              <div className="bg-bg-color w-16 h-16 rounded-second"></div>
-              <div className="text-[15px] p-[10px]">
-                <p className="font-bold">Limus Nomus</p>
-                <div className="flex">
-                  <p>Note :</p>
-                  <p className="font-bold">X</p>
-                  <p>svg start</p>
-                </div>
-              </div>
-            </div>
+            <p className="text-second font-bold">Ventes</p>
+            <p className="text-second font-bold text-blue">
+              {products.reduce(
+                (acc, product) =>
+                  acc + product.unitsSold * product.productPrice,
+                0
+              )}{" "}
+              €
+            </p>
           </div>
           <div className="flex-1 bg-white rounded-second font-bold p-prime">
-            <p className="text-second">Satisfaction</p>
+            <p className="text-second">Commandes</p>
+            <p className="text-blue text-second">
+              {products.reduce((acc, product) => acc + product.unitsSold, 0)}
+            </p>
           </div>
           {!add && (
             <button
@@ -728,40 +744,18 @@ function ProductPage() {
           )}
         </div>
         <div className="bg-white rounded-second my-prime">
+          {console.log(products)}
           {products.map((product) => (
             <div className="flex items-center p-4 w-full">
               <div className="flex items-center space-x-6 text-sm">
                 <img
                   src={product.color[0].photo[0]?.url}
-                  alt="test"
+                  alt={product.productName}
                   className="w-16 h-16"
                 />
                 <div className="ml-4 flex-grow">
                   <p className="font-bold text-[15px]">{product.productName}</p>
-                  <div className="flex items-center space-x-1 text-sm">
-                    <p>Note :</p>
-                    <p className="font-bold">x</p>
-                    <p>⭐</p>
-                  </div>
                 </div>
-
-                <div>
-                  <div className="flex">
-                    <p className="pr-1">Performance:</p>
-                    <p className="text-green-500 font-semibold">Excellente</p>
-                  </div>
-                  <div className="flex">
-                    <div className="flex">
-                      <p>img</p>
-                      <p>994</p>
-                    </div>
-                    <div className="flex">
-                      <p>img</p>
-                      <p>12,4 k</p>
-                    </div>
-                  </div>
-                </div>
-
                 <div>
                   <p>Prix</p>
                   <p className="font-semibold">{product.productPrice} €</p>
