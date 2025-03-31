@@ -2,33 +2,28 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-// use Argon2
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-const port = 3000; // Port du serveur API
+const port = 3000;
 
-// Middleware pour analyser les données JSON et activer CORS
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-app.use(cors()); // Enable CORS
+app.use(cors());
 
-// Connexion à MongoDB
 mongoose
   .connect("mongodb://localhost:27017/mydatabase")
   .then(() => console.log("Connecté à MongoDB"))
   .catch((err) => {
     console.error("Erreur de connexion à MongoDB:", err);
-    process.exit(1); // Arrêter l'application si MongoDB est inaccessible
+    process.exit(1);
   });
 
-// Définition et modèle du schéma
 const Product = mongoose.model("Product", {
   productName: String,
   productSlug: String,
   productDescription: String,
-  productPrice: Number,
   productPrice: Number,
   productCost: Number,
   color: [
@@ -65,10 +60,14 @@ const Product = mongoose.model("Product", {
 const User = mongoose.model("User", {
   email: { type: String, unique: true },
   password: String,
-  name: String,
+  secondName: String,
   firstName: String,
   phone: String,
-  address: String,
+  address: {
+    streetNumber: Number,
+    streetName: String,
+    zipcode: Number,
+  },
   cart: [
     {
       colorRow: Number,
@@ -76,6 +75,10 @@ const User = mongoose.model("User", {
       quantity: Number,
     },
   ],
+  role: {
+    type: String,
+    enum: ["admin", "user"],
+  },
 });
 
 const Order = mongoose.model("Order", {
@@ -87,16 +90,19 @@ const Order = mongoose.model("Order", {
     },
   ],
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  shipping: String,
+  shipping: {
+    type: String,
+    enum: ["shipping", "packing", "fabricating"],
+  },
   date: { type: Date, default: Date.now },
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || "SuperSecretKey";
 
-// 🔹 ROUTE D'INSCRIPTION
 app.post("/register", async (req, res) => {
-  const { email, password, name, firstName, phone, address } = req.body;
+  const { email, password, secondName, firstName, phone, address } = req.body;
   const cart = [];
+  const role = "user";
 
   if (!email || !password) {
     return res.status(400).json({ error: "Email et mot de passe sont requis" });
@@ -113,11 +119,12 @@ app.post("/register", async (req, res) => {
     const newUser = new User({
       email,
       password: hashedPassword,
-      name,
+      secondName,
       firstName,
       phone,
       address,
       cart,
+      role,
     });
     await newUser.save();
 
@@ -128,13 +135,12 @@ app.post("/register", async (req, res) => {
   }
 });
 
-// 🔹 ROUTE DE CONNEXION AVEC JWT
 app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
+  let { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: "Email et mot de passe sont requis" });
   }
+  email = email.toLowerCase();
 
   try {
     const user = await User.findOne({ email });
@@ -148,14 +154,9 @@ app.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Mot de passe incorrect" });
     }
 
-    // Générer un token JWT
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      JWT_SECRET,
-      {
-        expiresIn: "2h",
-      }
-    );
+    const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "2h",
+    });
 
     res.status(200).json({ message: "Connexion réussie", token });
   } catch (error) {
@@ -164,9 +165,9 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/updateUser", async (req, res) => {
+app.get("/getUser", async (req, res) => {
   try {
-    const { token, name, firstName, phone, address, cart } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res
@@ -179,12 +180,48 @@ app.post("/updateUser", async (req, res) => {
       return res.status(403).json({ error: "Token invalide." });
     }
 
-    const user = await User.findByIdAndUpdate(decoded.userId, {
-      ...(name && { name }),
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+});
+
+app.post("/updateUser", async (req, res) => {
+  try {
+    const { secondName, firstName, phone, address, cart } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ error: "Accès refusé. Aucun token fourni." });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (!decoded.userId) {
+      return res.status(403).json({ error: "Token invalide." });
+    }
+
+    if (!secondName && !firstName && !phone && !address && !cart) {
+      return res.status(400).json({ error: "Aucune donnée à mettre à jour." });
+    }
+
+    const updatedFields = {
+      ...(secondName && { secondName }),
       ...(firstName && { firstName }),
       ...(phone && { phone }),
       ...(address && { address }),
-      ...(cart && { cart }),
+      ...(Array.isArray(cart) && { cart }),
+    };
+
+    const user = await User.findByIdAndUpdate(decoded.userId, updatedFields, {
+      new: true,
     });
 
     if (!user) {
@@ -215,21 +252,20 @@ const authenticateToken = async (req, res, next) => {
       return res.status(403).json({ error: "Utilisateur non trouvé" });
     }
 
-    req.user = user; // Attach user to request object
-    next(); // Move to the next middleware or route handler
+    req.user = user;
+    next();
   } catch (error) {
     return res.status(403).json({ error: "Token invalide" });
   }
 };
 
 app.get("/protected", authenticateToken, (req, res) => {
-  if (req.user.email !== "adress@gmail.com") {
-    res.json({ user: req.user, access: false });
+  if (req.user.role !== "admin") {
+    res.status(405).send("Access denied");
   }
-  res.json({ user: req.user, access: true });
+  res.status(200).send("Okay");
 });
 
-// Routes API
 app.get("/products", async (req, res) => {
   try {
     const products = await Product.find();
@@ -272,15 +308,11 @@ app.post("/add-product", async (req, res) => {
       unitsSold,
       categories,
     } = req.body;
-
-    // Vérifier les champs obligatoires
     if (!productName || !productDescription || !productPrice || !productCost) {
       return res
         .status(400)
         .json({ error: "Les champs obligatoires sont manquants." });
     }
-
-    // Si le slug est vide ou incorrect, on le génère à partir du nom
     if (!productSlug || typeof productSlug !== "string") {
       productSlug = productName.toLowerCase().replace(/\s+/g, "-");
     }
@@ -313,7 +345,6 @@ app.post("/add-product", async (req, res) => {
 });
 
 app.delete("/delete-product/:id", async (req, res) => {
-  // Fixed to use route parameters
   const { id } = req.params;
   try {
     const result = await Product.findByIdAndDelete(id);
@@ -474,7 +505,6 @@ app.get("/user-find", async (req, res) => {
   }
 });
 
-// Démarrage du serveur
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution : http://localhost:${port}`);
 });

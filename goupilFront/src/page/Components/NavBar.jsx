@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import isConnected from "./TokenValidator";
 
 function NavBar() {
-  const [connected, setConnected] = useState(null);
+  const [user, setUser] = useState(null);
   const [numberOfProduct, setNumberOfProduct] = useState(0);
 
   useEffect(() => {
@@ -10,16 +9,17 @@ function NavBar() {
       (async () => {
         const fetchUserInfo = async () => {
           try {
-            const response = await fetch("https://localhost:7126/api/Users/me", {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:3000/getUser", {
               method: "GET",
               headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+                Authorization: `Bearer ${token}`,
               },
             });
 
             if (response.ok) {
               const userData = await response.json();
-              setConnected(userData);
+              setUser(userData.user);
             } else {
               console.error("Failed to fetch user info");
             }
@@ -34,14 +34,14 @@ function NavBar() {
   }, []);
 
   useEffect(() => {
-    if (connected && connected.user && connected.user.cart) {
-      const totalQuantity = connected.user.cart.reduce(
+    if (user) {
+      const totalQuantity = user.cart.reduce(
         (acc, item) => acc + item.quantity,
         0
       );
       setNumberOfProduct(totalQuantity);
     }
-  }, [connected]);
+  }, [user]);
 
   return (
     <div className="flex justify-between p-second backdrop-blur-xl z-20 relative backdrop-filter bg-bg-color bg-opacity-30">
@@ -96,7 +96,7 @@ function NavBar() {
         <button className="mx-second md:block hidden">Nous contacter</button>
       </div>
       <div className="flex">
-        {connected === null ? (
+        {user === null ? (
           <button
             onClick={() => (window.location.href = "/login")}
             className="text-blue"
@@ -108,7 +108,7 @@ function NavBar() {
             onClick={() => (window.location.href = "/profile")}
             className="text-blue"
           >
-            {connected.firstName} {connected.lastName}
+            {user.firstName} {user.secondName}
           </button>
         )}
         <button

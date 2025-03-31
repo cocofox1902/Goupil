@@ -13,23 +13,20 @@ function Admin() {
     if (localStorage.getItem("token")) {
       (async () => {
         try {
-          const result = await fetch(
-            "https://localhost:7126/api/Products/Admin",
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
+          const result = await fetch("http://localhost:3000/protected", {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          });
           if (!result.ok) {
             window.location.href = "/login";
-            throw new Error("Failed to fetch products");
+            throw new Error("Not Allowed");
           } else {
             setSelected(1);
           }
         } catch (error) {
-          console.error("Error fetching products:", error);
+          console.error("Error cheking role:", error);
           window.location.href = "/login";
         }
       })();

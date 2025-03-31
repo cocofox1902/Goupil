@@ -105,7 +105,7 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
     const updatedFormData = { ...formData, productSlug: formattedSlug };
 
     try {
-      const response = await fetch("https://localhost:7126/api/Products", {
+      const response = await fetch("http://localhost:3000/add-product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedFormData),
@@ -603,7 +603,7 @@ function ProductPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("https://localhost:7126/api/Products");
+      const response = await fetch("http://localhost:3000/products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -632,7 +632,7 @@ function ProductPage() {
 
     try {
       const response = await fetch(
-        `https://localhost:7126/api/Products/${productId}`,
+        `http://localhost:3000/delete-product/${productId}`,
         {
           method: "DELETE",
           headers: {

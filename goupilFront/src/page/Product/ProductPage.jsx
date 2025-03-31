@@ -14,7 +14,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("https://localhost:7126/api/Products");
+        const response = await fetch("http://localhost:3000/products");
         if (!response.ok) {
           throw new Error("Failed to fetch products");
         }
@@ -32,7 +32,7 @@ const ProductPage = () => {
       (async () => {
         const fetchUserInfo = async () => {
           try {
-            const response = await fetch("https://localhost:7126/api/Users/me", {
+            const response = await fetch("http://localhost:3000/getUser", {
               method: "GET",
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -125,6 +125,7 @@ const ProductPage = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ token, ...updatedData }),
       });
@@ -156,10 +157,8 @@ const ProductPage = () => {
             src={
               product.color[selectedColorIndex].photo[selectedPhotoIndex].url
             }
-            alt={
-              product.productName
-            }
-            className="md:w-[28vw] w-[80%] md:h-[30vw] h-[50%] bg-red-500"
+            alt={product.productName}
+            className="md:w-[28vw] w-[80%] md:h-[30vw] h-[50%] bg-red-500 object-cover"
           />
           <div className="flex justify-between mt-second md:w-[28vw] w-[80%]">
             {product.color[selectedColorIndex].photo.map((img, index) => (
@@ -168,7 +167,7 @@ const ProductPage = () => {
                 src={img.url}
                 alt={product.productName}
                 onClick={() => setSelectedPhotoIndex(index)}
-                className="md:w-[8vw] w-[25%] md:h-[8vw] h-[10%] bg-red-500 hover:opacity-80 cursor-pointer"
+                className="md:w-[8vw] w-[25%] md:h-[8vw] h-[10%] bg-red-500 hover:opacity-80 cursor-pointer object-cover"
               />
             ))}
           </div>
@@ -218,7 +217,10 @@ const ProductPage = () => {
                 if (connected) {
                   handleAddToCart(product._id);
                 } else {
-                  alert("Vous devez être connecté pour ajouter au panier.");
+                  if (
+                    confirm("Vous devez être connecté pour ajouter au panier.")
+                  )
+                    window.location.href = "/login";
                 }
               }}
               className={`bg-blue text-white py-2 px-4 rounded-md ${

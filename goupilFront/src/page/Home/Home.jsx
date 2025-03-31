@@ -9,7 +9,7 @@ function Home() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("https://localhost:7126/api/Products");
+      const response = await fetch("http://localhost:3000/products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }
@@ -23,6 +23,7 @@ function Home() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
   return (
     <div className="bg-cream">
       <NavBar />
@@ -58,7 +59,9 @@ function Home() {
                 src={product.color[0].photo[0]?.url}
                 alt={product.name}
                 className="w-64 h-72 cursor-pointer object-cover object-center"
-                onClick={() => changeWindow(product.productSlug)}
+                onClick={() =>
+                  (window.location.href = "/product/" + product.productSlug)
+                }
               />
               <div className="text-blue mt-2 text-start">
                 <p className="font-medium leading-5 text-lg">
@@ -91,7 +94,7 @@ function Home() {
                         r="8.02"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
+                        strokeWidth="5"
                       />
                       <circle
                         id="Elipse_36"
@@ -100,43 +103,43 @@ function Home() {
                         r="8.02"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
+                        strokeWidth="5"
                       />
                       <path
                         id="Trazado_104"
                         d="M14.54,58.6c-4.4-.22-7.15-.87-9.1-2.83s-2.61-4.7-2.83-9.1M31.92,58.71h22.77M72.03,58.52c3.67-.28,6.07-.99,7.82-2.75,2.94-2.94,2.94-7.67,2.94-17.13v-8.04h-18.87c-2.99,0-4.48,0-5.69-.39-2.44-.79-4.36-2.71-5.15-5.16-.39-1.21-.39-2.7-.39-5.69,0-4.48,0-6.73-.59-8.54-1.19-3.67-4.07-6.54-7.73-7.73-1.81-.59-4.06-.59-8.54-.59H2.5"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         id="Trazado_105"
                         d="M2.5,18.56h24.09"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         id="Trazado_106"
                         d="M2.5,30.6h16.06"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                       <path
                         id="Trazado_107"
                         d="M52.68,10.53h7.31c5.84,0,8.76,0,11.14,1.42s3.76,3.99,6.53,9.14l5.12,9.52"
                         fill="none"
                         stroke="#000063"
-                        stroke-width="5"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeWidth="5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
                     </g>
                   </g>
@@ -162,33 +165,33 @@ function Home() {
                       d="M2.5,52.06V17.68c7.99,2.36,24.95,5.41,45.55,6.84,11.09.77,16.63,1.15,19.69,4.45s3.06,8.62,3.06,19.27v7.64c0,10.96,0,16.44-3.73,19.85s-8.82,2.91-19,1.92c-4.86-.47-10-1.13-15.22-2"
                       fill="none"
                       stroke="#000063"
-                      stroke-width="5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                     <path
                       id="Trazado_115"
                       d="M58,25.27c1.43-5.4,2.73-15.22-1.13-20.1-2.45-3.09-6.09-2.79-9.66-2.48-13.36,1.04-26.57,3.48-39.42,7.28-3.23,1.09-5.37,4.16-5.29,7.56"
                       fill="none"
                       stroke="#000063"
-                      stroke-width="5"
-                      stroke-linejoin="round"
+                      strokeWidth="5"
+                      strokeLinejoin="round"
                     />
                     <path
                       id="Trazado_116"
                       d="M48.04,51.83c0,3.14,2.55,5.69,5.69,5.69s5.69-2.55,5.69-5.69-2.55-5.69-5.69-5.69h0c-3.14,0-5.69,2.55-5.69,5.69Z"
                       fill="none"
                       stroke="#000063"
-                      stroke-width="5"
+                      strokeWidth="5"
                     />
                     <path
                       id="Trazado_117"
                       d="M2.5,67.01s3.8,0,7.59,7.59c0,0,12.05-18.97,22.77-22.77"
                       fill="none"
                       stroke="#000063"
-                      stroke-width="5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </g>
                 </g>
@@ -213,36 +216,36 @@ function Home() {
                       d="M67.66,11.81H26.7c-13.82,0-24.2,10-24.2,24.2"
                       fill="none"
                       stroke="#000063"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="5"
                     />
                     <path
                       id="Trazado_109"
                       d="M4.36,60.21h40.96c13.83,0,24.2-10,24.2-24.2"
                       fill="none"
                       stroke="#000063"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="5"
                     />
                     <path
                       id="Trazado_110"
                       d="M60.21,2.5s9.31,6.86,9.31,9.31-9.31,9.31-9.31,9.31"
                       fill="none"
                       stroke="#000063"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="5"
                     />
                     <path
                       id="Trazado_111"
                       d="M11.81,50.91s-9.31,6.86-9.31,9.31,9.31,9.31,9.31,9.31"
                       fill="none"
                       stroke="#000063"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="5"
                     />
                   </g>
                 </g>

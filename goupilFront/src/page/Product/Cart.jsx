@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import isConnected from "../Components/TokenValidator";
 import NavBar from "../Components/NavBar";
 
 function Cart() {
-  const [connected, setConnected] = useState(null);
+  const [user, setUser] = useState(null);
   const [deliveryPriceCalculated, setDeliveryPriceCalculated] = useState(0);
   const deliveryPrice = [
     { weight: 0, price: 0 },
@@ -54,15 +53,13 @@ function Cart() {
   );
 
   const pay = async () => {
-    if (
-      localStorage.getItem("token") === null
-    ) {
+    if (localStorage.getItem("token") === null) {
       window.location.href = "/login";
       return;
     }
 
     const orderData = {
-      userId: connected._id,
+      userId: user._id,
       products: cartProducts.map((product) => ({
         productId: product.productId,
         productColorRow: product.colorRow,
@@ -73,7 +70,7 @@ function Cart() {
     console.log(orderData);
 
     try {
-      const response = await fetch("https://localhost:7126/api/Products/pay", {
+      const response = await fetch("http://localhost:3000/pay", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,6 +97,7 @@ function Cart() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({ token, cart: [] }),
         });
@@ -152,6 +150,7 @@ function Cart() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ token, cart: updatedCart }),
       });
@@ -175,24 +174,39 @@ function Cart() {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      if (localStorage.getItem("token")) {
-        const result = await isConnected();
+    if (localStorage.getItem("token")) {
+      (async () => {
+        const fetchUserInfo = async () => {
+          try {
+            const token = localStorage.getItem("token");
+            const response = await fetch("http://localhost:3000/getUser", {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
 
-        if (result && result.user) {
-          setConnected(result.user);
-        }
-      }
-    };
+            if (response.ok) {
+              const userData = await response.json();
+              setUser(userData.user);
+            } else {
+              console.error("Failed to fetch user info");
+            }
+          } catch (error) {
+            console.error("Error fetching user info:", error);
+          }
+        };
 
-    fetchUser();
+        fetchUserInfo();
+      })();
+    }
   }, []);
 
   useEffect(() => {
-    if (connected && connected.cart) {
-      setCart(connected.cart);
+    if (user && user.cart) {
+      setCart(user.cart);
     }
-  }, [connected]);
+  }, [user]);
 
   useEffect(() => {
     if (cart.length > 0) {
@@ -365,11 +379,15 @@ function Cart() {
                 </tr>
                 <tr>
                   <td className="w-[66%]">Livraison</td>
-                  <td className="w-[33%]">{deliveryPriceCalculated.toFixed(2)} €</td>
+                  <td className="w-[33%]">
+                    {deliveryPriceCalculated.toFixed(2)} €
+                  </td>
                 </tr>
                 <tr>
                   <td className="w-[66%] pt-second">Total :</td>
-                  <td className="w-[33%] pt-second">{totalPrice.toFixed(2)} €</td>
+                  <td className="w-[33%] pt-second">
+                    {totalPrice.toFixed(2)} €
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -404,9 +422,9 @@ function Cart() {
                     placeholder="Prénom"
                     className="border p-2 w-full rounded"
                     required
-                    value={connected && connected.firstName}
+                    value={user && user.firstName}
                     onChange={(e) =>
-                      setConnected({ ...connected, firstName: e.target.value })
+                      setUser({ ...user, firstName: e.target.value })
                     }
                   />
                   <input
@@ -414,9 +432,9 @@ function Cart() {
                     placeholder="Nom"
                     className="border p-2 w-full rounded"
                     required
-                    value={connected && connected.name}
+                    value={user && user.secondName}
                     onChange={(e) =>
-                      setConnected({ ...connected, name: e.target.value })
+                      setUser({ ...user, secondName: e.target.value })
                     }
                   />
                 </div>
@@ -425,21 +443,59 @@ function Cart() {
                   placeholder="E-mail"
                   className="border p-2 w-full mt-2 rounded"
                   required
-                  value={connected && connected.email}
-                  onChange={(e) =>
-                    setConnected({ ...connected, email: e.target.value })
-                  }
+                  value={user && user.email}
+                  onChange={(e) => setUser({ ...user, email: e.target.value })}
                 />
-                <input
-                  type="text"
-                  placeholder="Adresse"
-                  className="border p-2 w-full mt-2 rounded"
-                  required
-                  value={connected && connected.address}
-                  onChange={(e) =>
-                    setConnected({ ...connected, address: e.target.value })
-                  }
-                />
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    name="streetNumber"
+                    placeholder="Numéro de rue"
+                    className="w-full p-3 border rounded"
+                    value={user?.address?.streetNumber || ""}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        address: {
+                          ...user.address,
+                          streetNumber: Number(e.target.value) || 0,
+                        },
+                      })
+                    }
+                  />
+                  <input
+                    type="text"
+                    name="streetName"
+                    placeholder="Nom de la rue"
+                    className="w-full p-3 border rounded"
+                    value={user?.address?.streetName || ""}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        address: {
+                          ...user.address,
+                          streetName: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                  <input
+                    type="number"
+                    name="zipcode"
+                    placeholder="Code postal"
+                    className="w-full p-3 border rounded"
+                    value={user?.address?.zipcode || ""}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        address: {
+                          ...user.address,
+                          zipcode: Number(e.target.value) || 0,
+                        },
+                      })
+                    }
+                  />
+                </div>
               </div>
               <div className="mb-4">
                 <p className="text-sm font-semibold mb-1">

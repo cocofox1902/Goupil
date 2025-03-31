@@ -12,7 +12,7 @@ function Product() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("https://localhost:7126/api/Products");
+      const response = await fetch("http://localhost:3000/products");
       if (!response.ok) {
         throw new Error("Failed to fetch products");
       }

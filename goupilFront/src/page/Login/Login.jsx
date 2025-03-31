@@ -6,53 +6,75 @@ function Login() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
 
-  const [LastName, setLastName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [userAddress, setUserAddress] = useState({});
+  const [userRegister, setUserRegister] = useState({
+    email: "",
+    password: "",
+    secondName: "",
+    firstName: "",
+    phone: "",
+    address: {
+      streetNumber: "",
+      streetName: "",
+      zipcode: "",
+    },
+  });
+
+  const handleChange = (e) => {
+    let { name, value } = e.target;
+    if (name === "email") {
+      value = value.toLowerCase();
+    }
+    setUserRegister((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleAddressChange = (e) => {
+    const { name, value } = e.target;
+    setUserRegister((prev) => ({
+      ...prev,
+      address: {
+        ...prev.address,
+        [name]: value,
+      },
+    }));
+  };
+
+  const handleRegister = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userRegister),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Échec de l'inscription");
+      }
+
+      console.log("Inscription réussie:", data.message);
+    } catch (error) {
+      console.error("Erreur lors de l'inscription:", error.message);
+    }
+  };
 
   const handleLogin = async () => {
-    const response = await fetch("https://localhost:7126/api/login", {
+    const response = await fetch("http://localhost:3000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-  
+
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
-  
+
       localStorage.setItem("token", data.token);
       window.location.href = "/";
     } else {
       alert("Identifiants incorrects");
-    }
-  };
-  
-
-  const handleRegister = async () => {
-    try {
-      const test = await fetch("https://localhost:7126/api/Users/test");
-      console.log(test);
-      const response = await fetch("https://localhost:7126/api/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          LastName,
-          firstName,
-          phone,
-          userAddress,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to register");
-      }
-
-      const data = await response.json();
-    } catch (error) {
-      console.error("Error registering:", error);
     }
   };
 
@@ -145,7 +167,7 @@ function Login() {
                 type="email"
                 placeholder="E-mail"
                 className="w-full p-3 border rounded"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
               />
               <input
                 type="password"
@@ -176,61 +198,62 @@ function Login() {
               <div className="flex space-x-4">
                 <input
                   type="text"
+                  name="secondName"
                   placeholder="Nom"
                   className="w-full p-3 border rounded"
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={handleChange}
                 />
                 <input
                   type="text"
-                  placeholder="Prenom"
+                  name="firstName"
+                  placeholder="Prénom"
                   className="w-full p-3 border rounded"
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={handleChange}
                 />
               </div>
               <div className="flex space-x-2">
                 <input
                   type="number"
-                  placeholder="Numero de rue"
+                  name="streetNumber"
+                  placeholder="Numéro de rue"
                   className="w-full p-3 border rounded"
-                  onChange={(e) => {
-                    console.log(e.target.value, userAddress);
-                    setUserAddress({ ...userAddress, street: e.target.value });
-                  }}
+                  onChange={handleAddressChange}
                 />
                 <input
                   type="text"
+                  name="streetName"
                   placeholder="Nom de la rue"
                   className="w-full p-3 border rounded"
-                  onChange={(e) =>
-                    setUserAddress({ ...userAddress, city: e.target.value })
-                  }
+                  onChange={handleAddressChange}
                 />
                 <input
                   type="number"
+                  name="zipcode"
                   placeholder="Code postal"
                   className="w-full p-3 border rounded"
-                  onChange={(e) =>
-                    setUserAddress({ ...userAddress, zipCode: e.target.value })
-                  }
+                  onChange={handleAddressChange}
                 />
               </div>
               <input
                 type="email"
+                name="email"
                 placeholder="E-mail"
                 className="w-full p-3 border rounded"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleChange}
               />
               <input
                 type="number"
-                placeholder="Telephone"
+                name="phone"
+                placeholder="Téléphone"
                 className="w-full p-3 border rounded"
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={handleChange}
               />
               <input
                 type="password"
+                name="password"
                 placeholder="Mot de passe"
                 className="w-full p-3 border rounded"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleChange}
               />
               <button
                 className="w-full p-3 bg-blue text-white rounded"

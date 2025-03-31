@@ -28,21 +28,28 @@ function Profile() {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch(
-        "https://localhost:7126/api/Users/getByToken",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("Token is missing. Please log in.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/getUser", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const userData = await response.json();
-        setUserData(userData);
+        setUserData(userData.user);
       } else {
-        console.error("Failed to fetch user info");
+        const errorData = await response.json();
+        console.error(
+          "Failed to fetch user info:",
+          errorData.error || "Unknown error"
+        );
       }
     } catch (error) {
       console.error("Error fetching user info:", error);
@@ -51,11 +58,10 @@ function Profile() {
 
   const handleChangeUser = (event) => {
     const { name, value } = event.target;
-    console.log(name, value);
-    if (name === "street" || name === "city" || name === "zipCode") {
+    if (name === "streetNumber" || name === "streetName" || name === "zipcode") {
       setUserData((prevData) => ({
         ...prevData,
-        userAddress: { ...prevData.userAddress, [name]: value },
+        address: { ...prevData.address, [name]: value },
       }));
       return;
     }
@@ -64,8 +70,8 @@ function Profile() {
 
   const putUser = async () => {
     try {
-      const response = await fetch("https://localhost:7126/api/Users", {
-        method: "PUT",
+      const response = await fetch("http://localhost:3000/updateUser", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -118,12 +124,9 @@ function Profile() {
             Mes commandes
           </button>
         </div>
-
-        {/* Content Section */}
         <div className="w-[75%] bg-white p-6">
           {activeTab === "info" ? (
             <>
-              {/* Personal Information */}
               {userData && (
                 <>
                   <h1 className="text-2xl font-semibold mb-4">
@@ -146,10 +149,10 @@ function Profile() {
                       <label className="block text-sm text-gray-600">Nom</label>
                       <input
                         type="text"
-                        value={userData.lastName}
+                        value={userData.secondName}
                         className="w-full p-2 border rounded bg-gray-100"
                         onChange={handleChangeUser}
-                        name="lastName"
+                        name="secondName"
                       />
                     </div>
                     <div>
@@ -177,8 +180,6 @@ function Profile() {
                       />
                     </div>
                   </div>
-
-                  {/* Delivery Information */}
                   <h1 className="text-2xl font-semibold mb-4">
                     Informations de livraison
                   </h1>
@@ -189,10 +190,10 @@ function Profile() {
                       </label>
                       <input
                         type="number"
-                        value={userData.userAddress.street}
+                        value={userData.address.streetNumber}
                         className="w-full p-2 border rounded bg-gray-100"
                         onChange={handleChangeUser}
-                        name="street"
+                        name="streetNumber"
                       />
                     </div>
                     <div className="col-span-2">
@@ -201,10 +202,10 @@ function Profile() {
                       </label>
                       <input
                         type="text"
-                        value={userData.userAddress.city}
+                        value={userData.address.streetName}
                         className="w-full p-2 border rounded bg-gray-100"
                         onChange={handleChangeUser}
-                        name="city"
+                        name="streetName"
                       />
                     </div>
                     <div>
@@ -213,15 +214,14 @@ function Profile() {
                       </label>
                       <input
                         type="number"
-                        value={userData.userAddress.zipCode}
+                        value={userData.address.zipcode}
                         className="w-full p-2 border rounded bg-gray-100"
                         onChange={handleChangeUser}
-                        name="zipCode"
+                        name="zipcode"
                       />
                     </div>
                   </div>
 
-                  {/* Password Section */}
                   <h1 className="text-2xl font-semibold mb-4">Mot de passe</h1>
                   <div className="flex items-center justify-between bg-gray-100 p-2 rounded mb-6">
                     <input
@@ -231,12 +231,8 @@ function Profile() {
                       onChange={handleChangeUser}
                       name="password"
                     />
-                    <button className="text-blue underline ml-4">
-                      Modifier mot de passe
-                    </button>
                   </div>
 
-                  {/* Modify Button */}
                   <button
                     className="mt-4 w-full bg-blue text-white py-2 rounded text-lg"
                     onClick={() => putUser()}
@@ -249,13 +245,11 @@ function Profile() {
           ) : activeTab === "orders" ? (
             <div>
               <h1 className="text-2xl font-semibold mb-4">Mes commandes</h1>
-
               {orders.map((order) => (
                 <div key={order.id} className="border p-6 rounded-md shadow-sm">
                   <h2 className="font-semibold text-lg mb-4">
                     Commande # {order.id}
                   </h2>
-
                   <table className="w-full mb-4">
                     <thead>
                       <tr className="border-b">
@@ -290,8 +284,6 @@ function Profile() {
                       ))}
                     </tbody>
                   </table>
-
-                  {/* Total Price */}
                   <div className="text-right font-semibold">
                     Total : €{" "}
                     {order.products
@@ -301,8 +293,6 @@ function Profile() {
                       )
                       .toFixed(2)}
                   </div>
-
-                  {/* Order Status */}
                   <div className="mt-4">
                     <p className="font-semibold">Statut</p>
                     <div className="flex gap-2 mt-2">
