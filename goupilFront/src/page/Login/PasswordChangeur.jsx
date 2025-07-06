@@ -3,18 +3,16 @@ import { useState } from "react";
 
 function PasswordChangeur() {
   const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const email = useState(window.location.search.split("=")[1]);
   const token = useState(window.location.search.split("=")[2]);
 
   const submit = async () => {
-    const response = await fetch("http://localhost:3000/forgot-password", {
+    const response = await fetch("http://localhost:3000/reset-password", {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password, newPassword }),
+      body: JSON.stringify(password),
     });
   };
   return (
@@ -88,13 +86,6 @@ function PasswordChangeur() {
               placeholder="Nouveau mot de passe"
               className="w-full p-3 border rounded"
               onChange={(e) => setPassword(e.target.value)}
-            />
-            <p>Re-entrez votre mot de passe</p>
-            <input
-              type="password"
-              placeholder="Re-entrez votre mot de passe"
-              className="w-full p-3 border rounded"
-              onChange={(e) => setNewPassword(e.target.value)}
             />
             <button
               className="w-full p-3 bg-blue text-white rounded"

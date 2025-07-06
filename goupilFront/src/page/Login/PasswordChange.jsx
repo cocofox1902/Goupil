@@ -5,13 +5,17 @@ function PasswordChange() {
   const [email, setEmail] = useState("");
 
   const submit = async () => {
-    const response = await fetch("http://localhost:3000/password", {
+    const response = await fetch("http://localhost:3000/email", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email }),
     });
+
+    if (response.ok) {
+      alert("Un email de réinitialisation a été envoyé à votre adresse.");
+    }
   };
   return (
     <div className="flex bg-[#F7F3EE] h-screen">

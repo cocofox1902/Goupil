@@ -11,13 +11,16 @@ import "./index.css";
 import Profile from "./page/Login/Profile";
 import PasswordChange from "./page/Login/PasswordChange";
 import PasswordChangeur from "./page/Login/PasswordChangeur";
+import Command from "./page/Admin/Command";
+import ProductPageAdmin from "./page/Admin/ProductPage";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="admin" element={<Admin />} />
+        <Route path="/admin/product" element={<ProductPageAdmin />} />
+        <Route path="/admin/command" element={<Command />} />
         <Route path="product" element={<Product />} />
         <Route path="login" element={<Login />} />
         <Route path="/product/:productSlug" element={<ProductPage />} />

@@ -1,14 +1,6 @@
-import { useState, useEffect } from "react";
-import ProductPage from "./ProductPage";
-import Command from "./Command";
+import { useEffect } from "react";
 
 function Admin() {
-  const [selected, setSelected] = useState(0);
-
-  const changeNav = (number) => {
-    setSelected(number);
-  };
-
   useEffect(() => {
     if (localStorage.getItem("token")) {
       (async () => {
@@ -22,8 +14,6 @@ function Admin() {
           if (!result.ok) {
             window.location.href = "/login";
             throw new Error("Not Allowed");
-          } else {
-            setSelected(1);
           }
         } catch (error) {
           console.error("Error cheking role:", error);
@@ -35,8 +25,15 @@ function Admin() {
     }
   }, []);
 
+  let selected = 1;
+  if (window.location.href.includes("product")) {
+    selected = 1;
+  } else if (window.location.href.includes("command")) {
+    selected = 2;
+  }
+
   return (
-    <div className="bg-bg-color p-prime h-screen">
+    <div>
       <div className="bg-white flex rounded-second">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -81,7 +78,7 @@ function Admin() {
             selected === 1 ? "bg-blue text-white" : "bg-bg-color"
           } rounded-second m-prime p-1`}
           onClick={() => {
-            changeNav(1);
+            window.location.href = "/admin/product";
           }}
         >
           <svg
@@ -124,7 +121,7 @@ function Admin() {
             selected === 2 ? "bg-blue text-white" : "bg-bg-color"
           } rounded-second m-prime p-1`}
           onClick={() => {
-            changeNav(2);
+            window.location.href = "/admin/command";
           }}
         >
           <svg
@@ -161,13 +158,6 @@ function Admin() {
           <p className="text-sm mx-2 self-center">Commandes</p>
         </button>
       </div>
-      {selected === 0 ? (
-        <div>Please wait...</div>
-      ) : selected === 1 ? (
-        <ProductPage />
-      ) : (
-        <Command />
-      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import Admin from "./Admin";
 
 function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
   const blankProduct = {
@@ -261,10 +262,6 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
       console.error("Erreur lors de la mise à jour du produit :", error);
       return null;
     }
-  };
-
-  const deleteColor = (index) => {
-    console.log(index);
   };
 
   return (
@@ -596,7 +593,7 @@ function ProductSheet({ showAddingProduct, modify, setModify, productId }) {
   );
 }
 
-function ProductPage() {
+function ProductPageAdmin() {
   const [add, setAdd] = useState(false);
   const [products, setProducts] = useState([]);
   const [productVisibility, setProductVisibility] = useState([]);
@@ -706,137 +703,141 @@ function ProductPage() {
   };
 
   return (
-    <div className="py-prime flex">
-      <div className="w-full">
-        <div className="flex w-full gap-prime">
-          <div className="flex-1 bg-white rounded-second font-bold p-prime">
-            <p className="text-second">Produits actifs</p>
-            <p className="text-blue text-third">{products.length}</p>
-          </div>
-          <div className="flex-1 bg-white rounded-second p-prime">
-            <p className="text-second font-bold">Ventes</p>
-            <p className="text-second font-bold text-blue">
-              {products.reduce(
-                (acc, product) =>
-                  acc + product.unitsSold * product.productPrice,
-                0
-              )}{" "}
-              €
-            </p>
-          </div>
-          <div className="flex-1 bg-white rounded-second font-bold p-prime">
-            <p className="text-second">Commandes</p>
-            <p className="text-blue text-second">
-              {products.reduce((acc, product) => acc + product.unitsSold, 0)}
-            </p>
-          </div>
-          {!add && (
-            <button
-              className="flex-1 bg-white rounded-second font-bold flex text-center items-center justify-center p-prime"
-              onClick={() => {
-                setProductId(null);
-                setModify(false);
-                showAddingProduct(true);
-              }}
-            >
-              <p className="text-second">Ajouter un Produit</p>
-            </button>
-          )}
-        </div>
-        <div className="bg-white rounded-second my-prime">
-          {console.log(products)}
-          {products.map((product) => (
-            <div className="flex items-center p-4 w-full">
-              <div className="flex items-center space-x-6 text-sm">
-                <img
-                  src={product.color[0].photo[0]?.url}
-                  alt={product.productName}
-                  className="w-16 h-16"
-                />
-                <div className="ml-4 flex-grow">
-                  <p className="font-bold text-[15px]">{product.productName}</p>
-                </div>
-                <div>
-                  <p>Prix</p>
-                  <p className="font-semibold">{product.productPrice} €</p>
-                </div>
-                <div>
-                  <p>Catégorie</p>
-                  <div className="justify-self-center">
-                    {product.categories === "Desk" ? (
-                      <p>🖥️</p>
-                    ) : product.categories === "Stand Alone" ? (
-                      <p>🪑</p>
-                    ) : product.categories === "Applique" ? (
-                      <p>🛋️</p>
-                    ) : product.categories === "Plafonnier" ? (
-                      <p>💡</p>
-                    ) : (
-                      "❓"
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <p>Visibilité</p>
-                  <div
-                    onClick={() => visibleProduct(product._id)}
-                    className={`w-16 h-8 rounded-full flex items-center p-1 cursor-pointer transition-colors duration-300 ${
-                      productVisibility.includes(product._id)
-                        ? "bg-blue"
-                        : "bg-gray-300"
-                    }`}
-                  >
-                    <div
-                      className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
-                        productVisibility.includes(product._id)
-                          ? "translate-x-8"
-                          : "translate-x-0"
-                      }`}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex space-x-3 text-gray-600 ml-auto">
-                <button
-                  onClick={() => {
-                    modifyProduct(product._id);
-                  }}
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => {
-                    window.open(
-                      `${window.location.origin}/product/${product.productSlug}`,
-                      "_blank"
-                    );
-                  }}
-                >
-                  👁️
-                </button>
-                <button
-                  onClick={() => {
-                    deleteProduct(product._id);
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
+    <div className="bg-bg-color p-prime h-screen">
+      <Admin />
+      <div className="py-prime flex">
+        <div className="w-full">
+          <div className="flex w-full gap-prime">
+            <div className="flex-1 bg-white rounded-second font-bold p-prime">
+              <p className="text-second">Produits actifs</p>
+              <p className="text-blue text-third">{products.length}</p>
             </div>
-          ))}
+            <div className="flex-1 bg-white rounded-second p-prime">
+              <p className="text-second font-bold">Ventes</p>
+              <p className="text-second font-bold text-blue">
+                {products.reduce(
+                  (acc, product) =>
+                    acc + product.unitsSold * product.productPrice,
+                  0
+                )}{" "}
+                €
+              </p>
+            </div>
+            <div className="flex-1 bg-white rounded-second font-bold p-prime">
+              <p className="text-second">Commandes</p>
+              <p className="text-blue text-second">
+                {products.reduce((acc, product) => acc + product.unitsSold, 0)}
+              </p>
+            </div>
+            {!add && (
+              <button
+                className="flex-1 bg-white rounded-second font-bold flex text-center items-center justify-center p-prime"
+                onClick={() => {
+                  setProductId(null);
+                  setModify(false);
+                  showAddingProduct(true);
+                }}
+              >
+                <p className="text-second">Ajouter un Produit</p>
+              </button>
+            )}
+          </div>
+          <div className="bg-white rounded-second my-prime">
+            {products.map((product) => (
+              <div className="flex items-center p-4 w-full">
+                <div className="flex items-center space-x-6 text-sm">
+                  <img
+                    src={product.color[0].photo[0]?.url}
+                    alt={product.productName}
+                    className="w-16 h-16"
+                  />
+                  <div className="ml-4 flex-grow">
+                    <p className="font-bold text-[15px]">
+                      {product.productName}
+                    </p>
+                  </div>
+                  <div>
+                    <p>Prix</p>
+                    <p className="font-semibold">{product.productPrice} €</p>
+                  </div>
+                  <div>
+                    <p>Catégorie</p>
+                    <div className="justify-self-center">
+                      {product.categories === "Desk" ? (
+                        <p>🖥️</p>
+                      ) : product.categories === "Stand Alone" ? (
+                        <p>🪑</p>
+                      ) : product.categories === "Applique" ? (
+                        <p>🛋️</p>
+                      ) : product.categories === "Plafonnier" ? (
+                        <p>💡</p>
+                      ) : (
+                        "❓"
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p>Visibilité</p>
+                    <div
+                      onClick={() => visibleProduct(product._id)}
+                      className={`w-16 h-8 rounded-full flex items-center p-1 cursor-pointer transition-colors duration-300 ${
+                        productVisibility.includes(product._id)
+                          ? "bg-blue"
+                          : "bg-gray-300"
+                      }`}
+                    >
+                      <div
+                        className={`w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 ${
+                          productVisibility.includes(product._id)
+                            ? "translate-x-8"
+                            : "translate-x-0"
+                        }`}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 text-gray-600 ml-auto">
+                  <button
+                    onClick={() => {
+                      modifyProduct(product._id);
+                    }}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => {
+                      window.open(
+                        `${window.location.origin}/product/${product.productSlug}`,
+                        "_blank"
+                      );
+                    }}
+                  >
+                    👁️
+                  </button>
+                  <button
+                    onClick={() => {
+                      deleteProduct(product._id);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+        {add && (
+          <ProductSheet
+            showAddingProduct={showAddingProduct}
+            modify={modify}
+            setModify={setModify}
+            productId={productId}
+          />
+        )}
       </div>
-      {add && (
-        <ProductSheet
-          showAddingProduct={showAddingProduct}
-          modify={modify}
-          setModify={setModify}
-          productId={productId}
-        />
-      )}
     </div>
   );
 }
 
-export default ProductPage;
+export default ProductPageAdmin;

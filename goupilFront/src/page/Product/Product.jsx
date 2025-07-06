@@ -17,6 +17,7 @@ function Product() {
         throw new Error("Failed to fetch products");
       }
       const data = await response.json();
+      console.log(data);
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -97,7 +98,9 @@ function Product() {
                     <p className="font-medium leading-5 text-lg">
                       {product.productName}
                     </p>
-                    <p className=" text-sm">{product.productPrice.toFixed(2)} €</p>
+                    <p className=" text-sm">
+                      {product.productPrice.toFixed(2)} €
+                    </p>
                   </div>
                 </div>
               );

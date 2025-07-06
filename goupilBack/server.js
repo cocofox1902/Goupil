@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 const app = express();
 const port = 3000;
@@ -92,7 +93,7 @@ const Order = mongoose.model("Order", {
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   shipping: {
     type: String,
-    enum: ["shipping", "packing", "fabricating"],
+    enum: ["Fabrication", "Emballage", "En cours de livraison", "Livré"],
   },
   date: { type: Date, default: Date.now },
 });
@@ -424,14 +425,27 @@ app.put("/modify-product/:id", async (req, res) => {
 
 app.post("/pay", async (req, res) => {
   try {
-    const { userId, products } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Accès non autorisé" });
+    }
 
-    if (
-      !userId ||
-      !products ||
-      !Array.isArray(products) ||
-      products.length === 0
-    ) {
+    const token = authHeader.split(" ")[1];
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(403).json({ error: "Token invalide ou expiré" });
+    }
+
+    const userId = decoded.userId;
+
+    const { products } = req.body;
+    console.log("userId", userId);
+    console.log("products", products);
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
       return res.status(400).json({ error: "Données invalides" });
     }
 
@@ -458,7 +472,7 @@ app.post("/pay", async (req, res) => {
     const newOrder = new Order({
       user: userFound._id,
       productInformation: productDetails,
-      shipping: "pending",
+      shipping: "Fabrication",
       date: Date.now(),
     });
 
@@ -476,11 +490,35 @@ app.post("/pay", async (req, res) => {
 app.get("/orders", async (req, res) => {
   try {
     const orders = await Order.find();
-    // await Order.deleteMany();
     res.status(200).json(orders);
   } catch (error) {
     console.error("Erreur lors de la récupération des commandes:", error);
     res.status(500).json({ error: "Erreur interne du serveur." });
+  }
+});
+
+app.put("/orders-update", async (req, res) => {
+  const { orderId } = req.query;
+  const { shipping } = req.body;
+
+  if (!orderId) {
+    return res.status(400).json({ message: "Order ID is required" });
+  }
+  console.log("orderId", orderId);
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+    console.log("order", order);
+
+    order.shipping = shipping;
+    await order.save();
+
+    res.json({ message: "Order updated successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error });
   }
 });
 
@@ -503,6 +541,46 @@ app.get("/user-find", async (req, res) => {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     res.status(500).send("Erreur interne du serveur");
   }
+});
+
+app.get("/mail", async (req, res) => {
+  const { email } = req.query;
+  async function main() {
+    const transporter = nodemailer.createTransport({
+      host: "sandbox.smtp.mailtrap.io",
+      port: 587,
+      secure: false,
+      auth: {
+        user: "cd2bf050fea7b7",
+        pass: "9df2abbe8011a6",
+      },
+    });
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; background-color: #F7F3ED; padding: 20px;">
+        <h2 style="color: #05134A;">goupil</h2>
+        <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px;">
+            <p>Bonjour !</p>
+            <p>Vous avez récemment demandé à réinitialiser votre mot de passe.</p>
+            <a href="http://localhost:5174/reset-password?id=anIdToTestOnPasswordChange style="display: inline-block; background: #05134A; color: #fff; padding: 12px 20px; text-decoration: none; border-radius: 5px;">
+              Réinitialiser le mot de passe
+            </a>
+            <p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p>
+        </div>
+      </div>
+    `;
+
+    const info = await transporter.sendMail({
+      from: "info@mailtrap.io",
+      to: email,
+      subject: "Réinitialisation de mot de passe",
+      html: htmlContent,
+    });
+
+    console.log("Message sent: %s", info.messageId);
+  }
+
+  main().catch(console.error);
 });
 
 app.listen(port, () => {
